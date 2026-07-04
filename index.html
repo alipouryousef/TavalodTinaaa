@@ -1,91 +1,82 @@
 <!DOCTYPE html>
-<html lang="fa">
+<html lang="fa" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Birthday Night ✨</title>
+    <meta charset="UTF-8">
+    <title>آرزوی تو - علی</title>
+    <style>
+        body { margin: 0; background: #0b0e14; overflow: hidden; color: white; font-family: sans-serif; text-align: center; }
+        #scene { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+        
+        /* کیک و شمع */
+        .cake { font-size: 100px; margin-bottom: 50px; }
+        .flame { color: orange; animation: flicker 0.5s infinite alternate; }
+        .flame.off { display: none; }
 
-  <style>
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
-    }
+        /* فانوس‌ها */
+        .lantern { position: absolute; width: 30px; height: 30px; background: gold; border-radius: 50%; opacity: 0; }
+        @keyframes float { 
+            0% { bottom: 100px; opacity: 1; }
+            100% { bottom: 100vh; opacity: 0; }
+        }
 
-    body{
-      overflow:hidden;
-      background:#000;
-      font-family:sans-serif;
-    }
-
-    #overlay{
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,.8);
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
-      color:white;
-      z-index:100;
-    }
-
-    #overlay button{
-      margin-top:20px;
-      padding:15px 40px;
-      border:none;
-      border-radius:40px;
-      font-size:20px;
-      cursor:pointer;
-    }
-
-    #message{
-      position:fixed;
-      inset:0;
-      display:none;
-      justify-content:center;
-      align-items:center;
-      flex-direction:column;
-      color:white;
-      font-size:40px;
-      z-index:50;
-    }
-
-    #replayBtn{
-      margin-top:20px;
-      padding:15px 35px;
-      border:none;
-      border-radius:30px;
-      cursor:pointer;
-    }
-
-    canvas{
-      display:block;
-    }
-  </style>
-
-  <script type="importmap">
-  {
-    "imports": {
-      "three":"https://unpkg.com/three@0.150.1/build/three.module.js"
-    }
-  }
-  </script>
+        #startBtn { padding: 15px 30px; font-size: 20px; cursor: pointer; border-radius: 20px; border: none; background: gold; }
+        @keyframes flicker { from { transform: scale(1); } to { transform: scale(1.2); } }
+    </style>
 </head>
 <body>
 
-<div id="overlay">
-  <h1>✨ Birthday Night ✨</h1>
-  <p>Make a wish… and blow the candles.</p>
-  <button id="startBtn">Start</button>
-</div>
+    <div id="scene">
+        <button id="startBtn">شروع کن و شمع رو فوت کن! 🎂</button>
+        <div class="cake">
+            🍰<span id="flame" class="flame">🔥</span>
+        </div>
+    </div>
 
-<div id="message">
-  Happy Birthday ✨
-  <button id="replayBtn">Replay</button>
-</div>
+    <audio id="audio" src="music.m4a" loop></audio>
 
-<script type="module" src="./script.js"></script>
+    <script>
+        const btn = document.getElementById('startBtn');
+        const flame = document.getElementById('flame');
+        const audio = document.getElementById('audio');
 
+        btn.addEventListener('click', async () => {
+            btn.style.display = 'none';
+            audio.play();
+
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const analyser = audioContext.createAnalyser();
+            const source = audioContext.createMediaStreamSource(stream);
+            source.connect(analyser);
+            analyser.fftSize = 256;
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            function checkBlow() {
+                analyser.getByteFrequencyData(dataArray);
+                let sum = 0;
+                for(let i = 0; i < bufferLength; i++) sum += dataArray[i];
+                let average = sum / bufferLength;
+
+                if (average > 30) { // حساسیت میکروفون
+                    flame.classList.add('off');
+                    createLanterns();
+                }
+                requestAnimationFrame(checkBlow);
+            }
+            checkBlow();
+        });
+
+        function createLanterns() {
+            for(let i = 0; i < 10; i++) {
+                let l = document.createElement('div');
+                l.className = 'lantern';
+                l.style.left = Math.random() * 100 + 'vw';
+                l.style.animation = `float 5s linear forwards`;
+                document.body.appendChild(l);
+                setTimeout(() => l.remove(), 5000);
+            }
+        }
+    </script>
 </body>
 </html>
