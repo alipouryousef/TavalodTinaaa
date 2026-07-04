@@ -3,173 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>✨ I See The Light ✨</title>
+    <title>🛶 I See The Light ✨</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Lalezar&family=Vazirmatn:wght@300;400;700&display=swap');
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;700&display=swap');
+        
         body, html {
-            width: 100%; height: 100%;
-            overflow: hidden;
-            background-color: #020205; /* شب تاریک راپونزل */
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background-color: #000;
             font-family: 'Vazirmatn', sans-serif;
-            color: #fff;
-            transition: background-color 2s ease;
         }
 
-        /* لایه اریکی و شمع جادویی */
-        #room {
+        #webgl-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+
+        #ui-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, rgba(255, 170, 0, 0.15) 0%, rgba(2, 2, 5, 0.95) 60%);
-            display: flex; justify-content: center; align-items: center;
-            flex-direction: column; z-index: 10; transition: opacity 2s ease;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 10; background: rgba(0, 0, 5, 0.85); transition: opacity 1.5s;
         }
 
         #start-btn {
-            background: rgba(255, 215, 0, 0.1);
-            border: 1px solid rgba(255, 215, 0, 0.5);
+            background: rgba(255, 170, 0, 0.15); border: 1px solid rgba(255, 170, 0, 0.5);
             color: #ffd700; padding: 15px 40px; font-size: 1.2rem;
             border-radius: 50px; cursor: pointer; backdrop-filter: blur(5px);
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
-            transition: all 0.3s; z-index: 100;
-            font-family: 'Vazirmatn', sans-serif;
+            transition: all 0.3s; font-family: 'Vazirmatn', sans-serif;
+            box-shadow: 0 0 20px rgba(255, 170, 0, 0.2);
         }
 
-        #start-btn:hover { background: rgba(255, 215, 0, 0.2); transform: scale(1.05); }
+        #start-btn:hover { transform: scale(1.05); background: rgba(255, 170, 0, 0.25); }
 
         #instruction {
-            color: rgba(255, 215, 0, 0.8);
-            font-size: 1.2rem; margin-bottom: 40px;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-            display: none; animation: pulse 2s infinite;
+            position: absolute; top: 20%; color: rgba(255, 215, 0, 0.8);
+            font-size: 1.2rem; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            opacity: 0; transition: opacity 1s; pointer-events: none;
         }
-
-        /* شمع الهام گرفته از گل جادویی راپونزل */
-        .magic-candle-wrapper { position: relative; display: none; }
-        
-        .candle {
-            width: 20px; height: 80px;
-            background: linear-gradient(to right, #ffd700, #ffaa00);
-            border-radius: 10px;
-            box-shadow: inset -2px 0 10px rgba(0,0,0,0.3), 0 0 20px rgba(255, 215, 0, 0.3);
-        }
-
-        .flame {
-            position: absolute; top: -45px; left: 50%;
-            width: 25px; height: 45px;
-            background: linear-gradient(to bottom, #fff, #ffaa00, #ff4500);
-            border-radius: 50% 0 50% 50%;
-            transform-origin: bottom right;
-            transform: translate(-50%, 0) rotate(45deg);
-            box-shadow: 0 0 30px 10px rgba(255, 170, 0, 0.8), 0 0 60px 20px rgba(255, 100, 0, 0.4);
-            transition: transform 0.1s;
-        }
-
-        .glow {
-            position: absolute; top: -50px; left: 50%; transform: translateX(-50%);
-            width: 100px; height: 100px;
-            background: rgba(255, 170, 0, 0.15); border-radius: 50%;
-            box-shadow: 0 0 150px 80px rgba(255, 170, 0, 0.4);
-            animation: flicker 0.15s infinite alternate; pointer-events: none;
-        }
-
-        @keyframes flicker {
-            0% { transform: translateX(-50%) scale(0.95); opacity: 0.8; }
-            100% { transform: translateX(-50%) scale(1.05); opacity: 1; }
-        }
-        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-
-        /* بوم فانوس‌ها (Canvas) */
-        canvas#lanterns {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1; opacity: 0; transition: opacity 3s ease;
-        }
-
-        /* کارت تبریک طلایی راپونزل */
-        #tangled-card {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -40%);
-            text-align: center; opacity: 0; pointer-events: none; z-index: 20;
-            transition: all 4s ease;
-            width: 90%; max-width: 500px;
-        }
-
-        #tangled-card h1 {
-            font-family: 'Cinzel', serif; font-size: 4rem; margin: 0;
-            color: #ffd700;
-            text-shadow: 0 0 20px #ffaa00, 0 0 40px #ff4500;
-            letter-spacing: 5px; direction: ltr;
-        }
-
-        #tangled-card h2 {
-            font-family: 'Lalezar', cursive; font-size: 2.5rem;
-            color: #fff; margin-top: 10px;
-            text-shadow: 0 0 15px #ffaa00;
-        }
-
-        #tangled-card p {
-            font-size: 1.2rem; color: #ffe699; margin-top: 20px;
-            line-height: 1.8; text-shadow: 0 2px 5px rgba(0,0,0,0.8);
-        }
-
-        .sun-symbol {
-            width: 60px; margin-bottom: 15px;
-            filter: drop-shadow(0 0 10px #ffd700);
-            animation: rotateSun 20s linear infinite;
-        }
-
-        @keyframes rotateSun { 100% { transform: rotate(360deg); } }
-
     </style>
 </head>
 <body>
-
-    <div id="room">
-        <button id="start-btn">برای دیدن رویات کلیک کن ✨</button>
-        <div id="instruction">شمع رو فوت کن تا آسمون روشن بشه... 🌬️</div>
-        
-        <div class="magic-candle-wrapper" id="candle-wrapper">
-            <div class="candle">
-                <div class="flame" id="flame"></div>
-                <div class="glow" id="glow"></div>
-            </div>
-        </div>
+    <div id="ui-layer">
+        <button id="start-btn">سوار قایق شو... 🛶</button>
     </div>
-
-    <!-- بوم نقاشی برای فانوس‌های راپونزل -->
-    <canvas id="lanterns"></canvas>
-
-    <div id="tangled-card">
-        <!-- لوگوی نمادین خورشید راپونزل (SVG) -->
-        <svg class="sun-symbol" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <path fill="#ffd700" d="M50,10 C53,25 60,30 75,25 C68,35 70,42 85,45 C72,50 72,55 85,60 C70,63 68,70 75,80 C60,75 53,80 50,95 C47,80 40,75 25,80 C32,70 30,63 15,60 C28,55 28,50 15,45 C30,42 32,35 25,25 C40,30 47,25 50,10 Z M50,35 A15,15 0 1,0 50,65 A15,15 0 1,0 50,35 Z"/>
-        </svg>
-        <h1>T I N A</h1>
-        <h2>تولدت مبارک!</h2>
-        <p>امیدوارم مثل راپونزل، بالاخره به اون رویای قشنگت برسی و آسمون زندگیت همیشه پر از نور و فانوس‌های طلایی باشه... 🏮✨</p>
-    </div>
+    <div id="instruction">شمع رو فوت کن تا رویاها پرواز کنن 🌬️</div>
+    <div id="webgl-container"></div>
+    
+    <!-- حتماً یه فایل آهنگ به اسم music.mp3 تو گیت‌هابت بذار -->
+    <audio id="bg-music" src="music.mp3" preload="auto"></audio>
 
     <script>
+        // ==========================================
+        // 1. تنظیمات پایه Three.js
+        // ==========================================
+        const container = document.getElementById('webgl-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x020208, 0.002); // مه غلیظ شبانه روی آب
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+        // زاویه دید اول شخص تو قایق
+        camera.position.set(0, 5, 10); 
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        // ==========================================
+        // 2. ساخت محیط (آب، ستاره‌ها، قایق و کیک) با کد خالص
+        // ==========================================
+        
+        // نور محیطی تاریک
+        const ambientLight = new THREE.AmbientLight(0x111122, 1);
+        scene.add(ambientLight);
+
+        // --- دریاچه (Water) ---
+        const waterGeometry = new THREE.PlaneGeometry(1000, 1000, 50, 50);
+        const waterMaterial = new THREE.MeshPhongMaterial({
+            color: 0x050510, flatShading: true, shininess: 100, transparent: true, opacity: 0.9
+        });
+        const water = new THREE.Mesh(waterGeometry, waterMaterial);
+        water.rotation.x = -Math.PI / 2;
+        scene.add(water);
+
+        // --- ستاره‌های آسمون ---
+        const starsGeo = new THREE.BufferGeometry();
+        const starsCount = 2000;
+        const posArray = new Float32Array(starsCount * 3);
+        for(let i = 0; i < starsCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 1000;
+            // ستاره‌ها رو میبریم بالا تو آسمون
+            if(i % 3 === 1) posArray[i] = Math.random() * 400 + 50; 
+        }
+        starsGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const starsMat = new THREE.PointsMaterial({ size: 1.5, color: 0xffffff, transparent: true, opacity: 0.8 });
+        const stars = new THREE.Points(starsGeo, starsMat);
+        scene.add(stars);
+
+        // --- قایق (ساخت با اشکال هندسی) ---
+        const boatGroup = new THREE.Group();
+        const woodMaterial = new THREE.MeshPhongMaterial({ color: 0x3d2314 });
+        
+        // بدنه اصلی قایق جلوی دوربین
+        const bowGeo = new THREE.CylinderGeometry(0.1, 4, 15, 3, 1, false, 0, Math.PI);
+        const bow = new THREE.Mesh(bowGeo, woodMaterial);
+        bow.rotation.x = Math.PI / 2;
+        bow.rotation.z = Math.PI / 2;
+        bow.position.set(0, 1, -5);
+        boatGroup.add(bow);
+        
+        // تخته‌ای که کیک روش قرار میگیره
+        const plankGeo = new THREE.BoxGeometry(4, 0.2, 1.5);
+        const plank = new THREE.Mesh(plankGeo, woodMaterial);
+        plank.position.set(0, 3, 3);
+        boatGroup.add(plank);
+
+        scene.add(boatGroup);
+
+        // --- کیک و شمع ---
+        const cakeGroup = new THREE.Group();
+        
+        // کیک
+        const cakeGeo = new THREE.CylinderGeometry(1.2, 1.2, 1, 32);
+        const cakeMat = new THREE.MeshPhongMaterial({ color: 0xffb6c1 }); // صورتی پاستلی
+        const cakeMesh = new THREE.Mesh(cakeGeo, cakeMat);
+        cakeMesh.position.y = 3.6;
+        cakeGroup.add(cakeMesh);
+
+        // شمع
+        const candleGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.6);
+        const candleMat = new THREE.MeshPhongMaterial({ color: 0xffffff });
+        const candleMesh = new THREE.Mesh(candleGeo, candleMat);
+        candleMesh.position.y = 4.4;
+        cakeGroup.add(candleMesh);
+
+        // نور شعله شمع (باعث سایه روشن روی قایق و آب میشه)
+        const flameLight = new THREE.PointLight(0xffaa00, 2, 50);
+        flameLight.position.set(0, 4.8, 0);
+        cakeGroup.add(flameLight);
+
+        // گرافیک خود شعله
+        const flameGeo = new THREE.ConeGeometry(0.15, 0.4, 16);
+        const flameMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
+        const flameMesh = new THREE.Mesh(flameGeo, flameMat);
+        flameMesh.position.y = 4.8;
+        cakeGroup.add(flameMesh);
+
+        cakeGroup.position.set(0, 0, 3);
+        boatGroup.add(cakeGroup); // کیک وصل میشه به قایق تا باهاش تکون بخوره
+
+        // ==========================================
+        // 3. انیمیشن دوربین (لرزش روی آب) و آب
+        // ==========================================
+        const clock = new THREE.Clock();
+        function animateEnvironment() {
+            const t = clock.getElapsedTime();
+            
+            // حرکت موج‌های آب
+            const positions = waterGeometry.attributes.position.array;
+            for(let i = 0; i < positions.length; i+=3) {
+                positions[i+2] = Math.sin(positions[i]/5 + t) * Math.cos(positions[i+1]/5 + t) * 0.5;
+            }
+            waterGeometry.attributes.position.needsUpdate = true;
+
+            // تکون خوردن نرم قایق و دوربین روی آب
+            boatGroup.position.y = Math.sin(t * 1.5) * 0.3;
+            boatGroup.rotation.z = Math.sin(t * 1) * 0.02;
+            boatGroup.rotation.x = Math.cos(t * 1.2) * 0.02;
+            
+            camera.position.y = 5 + Math.sin(t * 1.5) * 0.3;
+            
+            // سوسو زدن نور شمع
+            if(!isBlownOut) {
+                flameLight.intensity = 2 + Math.random() * 0.5;
+                flameMesh.scale.set(1 + Math.random()*0.1, 1 + Math.random()*0.2, 1);
+            }
+        }
+
+        // ==========================================
+        // 4. منطق فوت کردن و ساخت فانوس‌ها
+        // ==========================================
         const startBtn = document.getElementById('start-btn');
-        const room = document.getElementById('room');
-        const candleWrapper = document.getElementById('candle-wrapper');
-        const flame = document.getElementById('flame');
-        const glow = document.getElementById('glow');
+        const uiLayer = document.getElementById('ui-layer');
         const instruction = document.getElementById('instruction');
-        const lanternsCanvas = document.getElementById('lanterns');
-        const tangledCard = document.getElementById('tangled-card');
+        const bgMusic = document.getElementById('bg-music');
         
         let audioCtx, analyser, dataArray;
         let isBlownOut = false;
+        let lanterns = [];
 
-        // شروع ماجرا و دسترسی به میکروفون
         startBtn.addEventListener('click', async () => {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                startBtn.style.display = 'none';
-                candleWrapper.style.display = 'block';
-                instruction.style.display = 'block';
+                uiLayer.style.opacity = '0';
+                setTimeout(() => uiLayer.style.display = 'none', 1500);
+                setTimeout(() => instruction.style.opacity = '1', 2000);
 
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioCtx.createAnalyser();
@@ -179,8 +204,8 @@
                 dataArray = new Uint8Array(analyser.frequencyBinCount);
 
                 checkBlow();
-            } catch (err) {
-                alert("بدون میکروفون که نمیشه جادو کرد! 🎙️");
+            } catch(e) {
+                alert("بدون میکروفون که نمیشه آرزو کرد! 🎙️");
             }
         });
 
@@ -192,10 +217,7 @@
             for(let i=0; i<dataArray.length; i++) sum += dataArray[i];
             let volume = sum / dataArray.length;
 
-            if (volume < 50) {
-                let scale = Math.max(0.3, 1 - (volume / 80)); 
-                let bend = 45 + (volume * 1.5); 
-                flame.style.transform = `translate(-50%, 0) rotate(${bend}deg) scale(${scale})`;
+            if (volume < 60) {
                 requestAnimationFrame(checkBlow);
             } else {
                 startMagic();
@@ -204,117 +226,70 @@
 
         function startMagic() {
             isBlownOut = true;
+            instruction.style.opacity = '0';
             
-            // خاموش شدن شمع و تاریک شدن کامل اتاق
-            flame.style.display = 'none';
-            glow.style.display = 'none';
-            instruction.style.display = 'none';
+            // خاموش شدن شمع
+            flameLight.intensity = 0;
+            flameMesh.visible = false;
             
-            // بعد از یک ثانیه سکوت و تاریکی، صحنه راپونزل شروع میشه
+            // پخش موزیک
+            bgMusic.play();
+
+            // ساخت فانوس‌ها بعد از ۲ ثانیه تاریکی
             setTimeout(() => {
-                room.style.opacity = '0';
-                setTimeout(() => room.style.display = 'none', 2000); // حذف لایه تاریک
-                
-                lanternsCanvas.style.opacity = '1';
-                initLanterns();
-                
-                // ظهور کارت تبریک طلایی
-                setTimeout(() => {
-                    tangledCard.style.opacity = '1';
-                    tangledCard.style.transform = 'translate(-50%, -50%)';
-                }, 2000);
-
-            }, 1000);
+                createLanterns();
+            }, 2000);
         }
 
-        // ==========================================
-        // سیستم ذرات: فانوس‌های راپونزل (Canvas)
-        // ==========================================
-        const ctx = lanternsCanvas.getContext('2d');
-        let width, height;
-        let lanterns = [];
-        const lanternCount = window.innerWidth < 600 ? 60 : 120; // تعداد فانوس‌ها
+        function createLanterns() {
+            const lanternGeo = new THREE.CylinderGeometry(0.8, 0.8, 2, 8);
+            const lanternMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 }); // متریال درخشان
 
-        function resize() {
-            width = lanternsCanvas.width = window.innerWidth;
-            height = lanternsCanvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resize);
-        resize();
-
-        class Lantern {
-            constructor() {
-                this.x = Math.random() * width;
-                this.y = height + Math.random() * 800; // شروع از پایین صفحه
-                this.w = Math.random() * 12 + 15;
-                this.h = this.w * 1.4;
-                this.speedY = Math.random() * 1 + 0.5; // سرعت بالا رفتن
-                this.wobble = Math.random() * Math.PI * 2;
-                this.wobbleSpeed = Math.random() * 0.02 + 0.01;
-                // رنگ‌های طلایی و نارنجی
-                this.color = `rgba(255, ${Math.floor(Math.random()*60 + 170)}, 0, ${Math.random()*0.5 + 0.5})`;
-            }
-
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                ctx.rotate(Math.sin(this.wobble) * 0.1); // تکان خوردن ملایم در باد
+            for(let i = 0; i < 150; i++) {
+                const mesh = new THREE.Mesh(lanternGeo, lanternMat);
+                // پخش فانوس‌ها در کل دریاچه
+                mesh.position.x = (Math.random() - 0.5) * 200;
+                mesh.position.y = -10 - Math.random() * 50; // شروع از زیر دید دوربین
+                mesh.position.z = -50 - Math.random() * 150; // جلوتر از قایق
                 
-                // رسم بدنه فانوس
-                ctx.fillStyle = this.color;
-                ctx.shadowBlur = 25;
-                ctx.shadowColor = '#ff8c00';
+                // نور اختصاصی برای هر فانوس
+                const light = new THREE.PointLight(0xffaa00, 1, 20);
+                mesh.add(light);
+
+                const speed = Math.random() * 0.05 + 0.02;
+                const wobbleSpeed = Math.random() * 0.02 + 0.01;
                 
-                // شکل فانوس با گوشه‌های گرد
-                ctx.beginPath();
-                ctx.moveTo(-this.w/2, -this.h/2);
-                ctx.lineTo(this.w/2, -this.h/2);
-                ctx.quadraticCurveTo(this.w/2 + 2, 0, this.w/2, this.h/2);
-                ctx.lineTo(-this.w/2, this.h/2);
-                ctx.quadraticCurveTo(-this.w/2 - 2, 0, -this.w/2, -this.h/2);
-                ctx.fill();
-
-                // نور مرکز فانوس
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-                ctx.shadowBlur = 10;
-                ctx.beginPath();
-                ctx.arc(0, this.h/4, this.w/4, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.restore();
+                lanterns.push({ mesh, speed, wobbleSpeed, wobbleOffset: Math.random() * Math.PI * 2 });
+                scene.add(mesh);
             }
-
-            update() {
-                this.y -= this.speedY; // حرکت به بالا
-                this.wobble += this.wobbleSpeed;
-                this.x += Math.sin(this.wobble) * 0.8; // حرکت چپ و راست ملایم
-
-                // اگر از بالای صفحه خارج شد، دوباره از پایین شروع کنه
-                if (this.y < -50) {
-                    this.y = height + 50;
-                    this.x = Math.random() * width;
-                }
-            }
-        }
-
-        function initLanterns() {
-            for (let i = 0; i < lanternCount; i++) {
-                lanterns.push(new Lantern());
-            }
-            animateLanterns();
         }
 
         function animateLanterns() {
-            requestAnimationFrame(animateLanterns);
-            // پاک کردن صفحه با یه دنباله خیلی نرم (Trail effect)
-            ctx.fillStyle = 'rgba(2, 2, 5, 0.3)';
-            ctx.fillRect(0, 0, width, height);
-
-            lanterns.forEach(lantern => {
-                lantern.update();
-                lantern.draw();
-            });
+            if(lanterns.length > 0) {
+                const t = clock.getElapsedTime();
+                lanterns.forEach(lantern => {
+                    lantern.mesh.position.y += lantern.speed;
+                    lantern.mesh.position.x += Math.sin(t * lantern.wobbleSpeed + lantern.wobbleOffset) * 0.1;
+                });
+            }
         }
+
+        // ==========================================
+        // 5. حلقه اصلی رندر
+        // ==========================================
+        function animate() {
+            requestAnimationFrame(animate);
+            animateEnvironment();
+            animateLanterns();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>
