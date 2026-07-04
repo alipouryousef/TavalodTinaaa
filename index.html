@@ -2,31 +2,40 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تولدت مبارک تینا! 🎇</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>✨ TINA'S UNIVERSE ✨</title>
+    <!-- لود کردن Three.js برای رندر 3D و GSAP برای انیمیشن -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
     <style>
-        /* فونت‌های قشنگ فارسی */
-        @import url('https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@400;700&display=swap');
-        
-        body, html {
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Vazirmatn:wght@300;500;700&display=swap');
+
+        * {
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #05050a; /* پس‌زمینه خیلی تاریک و شیک */
-            overflow: hidden;
-            font-family: 'Vazirmatn', sans-serif;
-            color: white;
-            user-select: none;
+            box-sizing: border-box;
         }
 
-        canvas {
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #020205; /* مشکی فضایی */
+            font-family: 'Vazirmatn', sans-serif;
+            color: #fff;
+        }
+
+        #webgl-container {
             position: absolute;
             top: 0;
             left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 1;
         }
 
+        /* لایه UI روی کهکشان */
         #ui-layer {
             position: absolute;
             top: 0;
@@ -37,641 +46,219 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-direction: column;
-            pointer-events: none;
+            pointer-events: none; /* تا بتونه روی کهکشان تاچ کنه */
         }
 
-        /* متن چشمک‌زن اول صفحه */
-        .intro-text {
-            font-family: 'Lalezar', cursive;
-            font-size: 2.5rem;
-            color: #ff9d00;
-            text-shadow: 0 0 15px #ff9d00, 0 0 30px #ff003c;
-            animation: pulseText 1.5s infinite alternate;
-            pointer-events: auto;
-            cursor: pointer;
-            padding: 20px 40px;
-            border-radius: 15px;
-            background: rgba(0,0,0,0.4);
-            border: 1px solid rgba(255, 157, 0, 0.3);
-            backdrop-filter: blur(5px);
-        }
-
-        @keyframes pulseText {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(1.05); opacity: 1; text-shadow: 0 0 25px #ff9d00, 0 0 50px #ff003c; }
-        }
-
-        /* کارت شیشه‌ای خفن (Glassmorphism) */
-        .card {
-            background: rgba(20, 20, 35, 0.6);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-top: 1px solid rgba(255, 255, 255, 0.4);
-            border-left: 1px solid rgba(255, 255, 255, 0.4);
-            border-radius: 25px;
-            padding: 40px;
+        .glass-card {
+            background: rgba(15, 10, 30, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            padding: 50px 40px;
             text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 40px rgba(255, 0, 127, 0.3);
-            max-width: 85%;
-            width: 420px;
-            opacity: 0;
-            transform: translateY(50px) scale(0.9);
-            transition: all 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: none;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(255, 105, 180, 0.2);
+            max-width: 90%;
+            width: 450px;
+            opacity: 0; /* برای انیمیشن GSAP */
+            transform: translateY(100px) scale(0.8);
             pointer-events: auto;
         }
 
-        .card.show {
-            display: block;
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-
-        /* افکت رنگین‌کمانی و درخشان روی اسم */
-        .card h1 {
-            font-family: 'Lalezar', cursive;
+        h1.title {
+            font-family: 'Cinzel', serif;
             font-size: 3.5rem;
-            margin: 0 0 15px 0;
-            background: linear-gradient(45deg, #ff007f, #ff77ff, #00d2ff, #ff007f);
-            background-size: 200% auto;
+            letter-spacing: 5px;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #ff7eb3, #ff758c, #ff7eb3);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: shine 3s linear infinite;
+            text-shadow: 0 0 30px rgba(255, 117, 140, 0.5);
+            direction: ltr;
         }
 
-        .card p {
-            font-size: 1.2rem;
-            line-height: 1.8;
-            color: #eaeaea;
-            margin-bottom: 30px;
-        }
-
-        .highlight {
-            color: #00d2ff;
-            font-weight: bold;
-            text-shadow: 0 0 10px rgba(0, 210, 255, 0.6);
-        }
-
-        .btn {
-            background: linear-gradient(45deg, #ff007f, #7a00ff);
-            border: none;
-            padding: 12px 35px;
-            border-radius: 50px;
-            color: white;
-            font-family: 'Vazirmatn', sans-serif;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 5px 20px rgba(255, 0, 127, 0.5);
-            transition: all 0.3s ease;
-        }
-
-        .btn:hover {
-            transform: scale(1.1) translateY(-3px);
-            box-shadow: 0 10px 30px rgba(255, 0, 127, 0.8);
-        }
-
-        @keyframes shine {
-            to { background-position: 200% center; }
-        }
-    </style>
-</head>
-<body>
-
-    <canvas id="fireworks"></canvas>
-
-    <div id="ui-layer">
-        <div id="intro" class="intro-text" onclick="startMagic()">
-            ✨ لمس کن ✨
-        </div>
-
-        <div id="card" class="card">
-            <h1>تولدت مبارک تینا!</h1>
-            <p>امیدوارم این سال جدید از زندگیت، مثل این آسمون پر از <span class="highlight">ستاره‌های درخشان</span> و اتفاقات فوق‌العاده باشه. بهترین‌ها سهم تو! 🌌🎇</p>
-            <button class="btn" onclick="createMoreFireworks(event)">بزن بترکون! 🎆</button>
-        </div>
-    </div>
-
-    <script>
-        // --- کدهای مربوط به گرافیک و آتیش‌بازی ---
-        const canvas = document.getElementById('fireworks');
-        const ctx = canvas.getContext('2d');
-        
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
-
-        class Particle {
-            constructor(x, y, color) {
-                this.x = x;
-                this.y = y;
-                this.color = color;
-                this.radius = Math.random() * 2.5 + 1;
-                const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 10 + 2;
-                this.velocity = {
-                    x: Math.cos(angle) * speed,
-                    y: Math.sin(angle) * speed
-                };
-                this.friction = 0.96;
-                this.gravity = 0.2;
-                this.alpha = 1;
-                this.decay = Math.random() * 0.015 + 0.005;
-            }
-
-            draw() {
-                ctx.save();
-                ctx.globalAlpha = this.alpha;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = this.color;
-                ctx.fill();
-                ctx.restore();
-            }
-
-            update() {
-                this.velocity.x *= this.friction;
-                this.velocity.y *= this.friction;
-                this.velocity.y += this.gravity;
-                this.x += this.velocity.x;
-                this.y += this.velocity.y;
-                this.alpha -= this.decay;
-            }
-        }
-
-        let particles = [];
-        const colors = ['#ff007f', '#ff77ff', '#00d2ff', '#ff9d00', '#00ff7f', '#a200ff', '#ffffff'];
-
-        function createFirework(x, y) {
-            const particleCount = window.innerWidth < 600 ? 80 : 150; // رو گوشی سبک‌تر اجرا بشه
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            for (let i = 0; i < particleCount; i++) {
-                particles.push(new Particle(x, y, color));
-            }
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            // افکت دنباله‌دار شدن ذرات
-            ctx.fillStyle = 'rgba(5, 5, 10, 0.2)'; 
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            for (let i = particles.length - 1; i >= 0; i--) {
-                const p = particles[i];
-                p.update();
-                p.draw();
-                if (p.alpha <= 0) {
-                    particles.splice(i, 1);
-                }
-            }
-        }
-
-        animate();
-
-        // --- کدهای مربوط به دکمه‌ها و تعاملات ---
-        let isMagicStarted = false;
-
-        function startMagic() {
-            if(isMagicStarted) return;
-            isMagicStarted = true;
-
-            // مخفی کردن متن اولیه
-            document.getElementById('intro').style.display = 'none';
-
-            // انفجارهای اولیه وسط صفحه
-            const cx = window.innerWidth / 2;
-            const cy = window.innerHeight / 2;
-            createFirework(cx, cy);
-            setTimeout(() => createFirework(cx - 100, cy - 80), 300);
-            setTimeout(() => createFirework(cx + 100, cy - 80), 600);
-            setTimeout(() => createFirework(cx, cy + 100), 900);
-
-            // هر 1.5 ثانیه یه جا رندوم آتیش‌بازی بشه
-            setInterval(() => {
-                const x = Math.random() * canvas.width;
-                const y = Math.random() * (canvas.height * 0.6); // فقط تو نیمه بالایی تصویر
-                createFirework(x, y);
-            }, 1500);
-
-            // نمایش کارت تبریک با یکم تاخیر
-            setTimeout(() => {
-                const card = document.getElementById('card');
-                card.style.display = 'block';
-                setTimeout(() => card.classList.add('show'), 50); 
-            }, 1200);
-        }
-
-        function createMoreFireworks(e) {
-            e.stopPropagation(); // جلوگیری از تداخل با کلیک روی پس‌زمینه
-            const x = Math.random() * canvas.width;
-            const y = Math.random() * canvas.height;
-            createFirework(x, y);
-            createFirework(x + 50, y - 50);
-            createFirework(x - 50, y + 50);
-        }
-
-        // هر جای صفحه کلیک بشه فشفشه می‌زنه
-        window.addEventListener('click', (e) => {
-            if(isMagicStarted) {
-                createFirework(e.clientX, e.clientY);
-            }
-        });
-        
-        // پشتیبانی از تاچ گوشی برای زدن فشفشه
-        window.addEventListener('touchstart', (e) => {
-            if(isMagicStarted) {
-                createFirework(e.touches[0].clientX, e.touches[0].clientY);
-            }
-        });
-    </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تولدت مبارک تینا! 🎇</title>
-    <style>
-        /* فونت‌های قشنگ فارسی */
-        @import url('https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@400;700&display=swap');
-        
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #05050a; /* پس‌زمینه خیلی تاریک و شیک */
-            overflow: hidden;
-            font-family: 'Vazirmatn', sans-serif;
-            color: white;
-            user-select: none;
-        }
-
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
-
-        #ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            pointer-events: none;
-        }
-
-        /* متن چشمک‌زن اول صفحه */
-        .intro-text {
-            font-family: 'Lalezar', cursive;
-            font-size: 2.5rem;
-            color: #ff9d00;
-            text-shadow: 0 0 15px #ff9d00, 0 0 30px #ff003c;
-            animation: pulseText 1.5s infinite alternate;
-            pointer-events: auto;
-            cursor: pointer;
-            padding: 20px 40px;
-            border-radius: 15px;
-            background: rgba(0,0,0,0.4);
-            border: 1px solid rgba(255, 157, 0, 0.3);
-            backdrop-filter: blur(5px);
-        }
-
-        @keyframes pulseText {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(1.05); opacity: 1; text-shadow: 0 0 25px #ff9d00, 0 0 50px #ff003c; }
-        }
-
-        /* کارت شیشه‌ای خفن (Glassmorphism) */
-        .card {
-            background: rgba(20, 20, 35, 0.6);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-top: 1px solid rgba(255, 255, 255, 0.4);
-            border-left: 1px solid rgba(255, 255, 255, 0.4);
-            border-radius: 25px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 40px rgba(255, 0, 127, 0.3);
-            max-width: 85%;
-            width: 420px;
-            opacity: 0;
-            transform: translateY(50px) scale(0.9);
-            transition: all 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: none;
-            pointer-events: auto;
-        }
-
-        .card.show {
-            display: block;
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-
-        /* افکت رنگین‌کمانی و درخشان روی اسم */
-        .card h1 {
-            font-family: 'Lalezar', cursive;
-            font-size: 3.5rem;
-            margin: 0 0 15px 0;
-            background: linear-gradient(45deg, #ff007f, #ff77ff, #00d2ff, #ff007f);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shine 3s linear infinite;
-        }
-
-        .card p {
-            font-size: 1.2rem;
-            line-height: 1.8;
-            color: #eaeaea;
-            margin-bottom: 30px;
-        }
-
-        .highlight {
-            color: #00d2ff;
-            font-weight: bold;
-            text-shadow: 0 0 10px rgba(0, 210, 255, 0.6);
-        }
-
-        .btn {
-            background: linear-gradient(45deg, #ff007f, #7a00ff);
-            border: none;
-            padding: 12px 35px;
-            border-radius: 50px;
-            color: white;
-            font-family: 'Vazirmatn', sans-serif;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 5px 20px rgba(255, 0, 127, 0.5);
-            transition: all 0.3s ease;
-        }
-
-        .btn:hover {
-            transform: scale(1.1) translateY(-3px);
-            box-shadow: 0 10px 30px rgba(255, 0, 127, 0.8);
-        }
-
-        @keyframes shine {
-            to { background-position: 200% center; }
-        }
-    </style>
-</head>
-<body>
-
-    <canvas id="fireworks"></canvas>
-
-    <div id="ui-layer">
-        <div id="intro" class="intro-text" onclick="startMagic()">
-            ✨ لمس کن ✨
-        </div>
-
-        <div id="card" class="card">
-            <h1>تولدت مبارک تینا!</h1>
-            <p>امیدوارم این سال جدید از زندگیت، مثل این آسمون پر از <span class="highlight">ستاره‌های درخشان</span> و اتفاقات فوق‌العاده باشه. بهترین‌ها سهم تو! 🌌🎇</p>
-            <button class="btn" onclick="createMoreFireworks(event)">بزن بترکون! 🎆</button>
-        </div>
-    </div>
-
-    <script>
-        // --- کدهای مربوط به گرافیک و آتیش‌بازی ---
-        const canvas = document.getElementById('fireworks');
-        const ctx = canvas.getContext('2d');
-        
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
-
-        class Particle {
-            constructor(x, y, color) {
-                this.x = x;
-                this.y = y;
-                this.color = color;
-                this.radius = Math.random() * 2.5 + 1;
-                const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 10 + 2;
-                this.velocity = {
-                    x: Math.cos(angle) * speed,
-                    y: Math.sin(angle) * speed
-                };
-                this.friction = 0.96;
-                this.gravity = 0.2;
-                this.alpha = 1;
-                this.decay = Math.random() * 0.015 + 0.005;
-            }
-
-            draw() {
-                ctx.save();
-                ctx.globalAlpha = this.alpha;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = this.color;
-                ctx.fill();
-                ctx.restore();
-            }
-
-            update() {
-                this.velocity.x *= this.friction;
-                this.velocity.y *= this.friction;
-                this.velocity.y += this.gravity;
-                this.x += this.velocity.x;
-                this.y += this.velocity.y;
-                this.alpha -= this.decay;
-            }
-        }
-
-        let particles = [];
-        const colors = ['#ff007f', '#ff77ff', '#00d2ff', '#ff9d00', '#00ff7f', '#a200ff', '#ffffff'];
-
-        function createFirework(x, y) {
-            const particleCount = window.innerWidth < 600 ? 80 : 150; // رو گوشی سبک‌تر اجرا بشه
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            for (let i = 0; i < particleCount; i++) {
-                particles.push(new Particle(x, y, color));
-            }
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            // افکت دنباله‌دار شدن ذرات
-            ctx.fillStyle = 'rgba(5, 5, 10, 0.2)'; 
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            for (let i = particles.length - 1; i >= 0; i--) {
-                const p = particles[i];
-                p.update();
-                p.draw();
-                if (p.alpha <= 0) {
-                    particles.splice(i, 1);
-                }
-            }
-        }
-
-        animate();
-
-        // --- کدهای مربوط به دکمه‌ها و تعاملات ---
-        let isMagicStarted = false;
-
-        function startMagic() {
-            if(isMagicStarted) return;
-            isMagicStarted = true;
-
-            // مخفی کردن متن اولیه
-            document.getElementById('intro').style.display = 'none';
-
-            // انفجارهای اولیه وسط صفحه
-            const cx = window.innerWidth / 2;
-            const cy = window.innerHeight / 2;
-            createFirework(cx, cy);
-            setTimeout(() => createFirework(cx - 100, cy - 80), 300);
-            setTimeout(() => createFirework(cx + 100, cy - 80), 600);
-            setTimeout(() => createFirework(cx, cy + 100), 900);
-
-            // هر 1.5 ثانیه یه جا رندوم آتیش‌بازی بشه
-            setInterval(() => {
-                const x = Math.random() * canvas.width;
-                const y = Math.random() * (canvas.height * 0.6); // فقط تو نیمه بالایی تصویر
-                createFirework(x, y);
-            }, 1500);
-
-            // نمایش کارت تبریک با یکم تاخیر
-            setTimeout(() => {
-                const card = document.getElementById('card');
-                card.style.display = 'block';
-                setTimeout(() => card.classList.add('show'), 50); 
-            }, 1200);
-        }
-
-        function createMoreFireworks(e) {
-            e.stopPropagation(); // جلوگیری از تداخل با کلیک روی پس‌زمینه
-            const x = Math.random() * canvas.width;
-            const y = Math.random() * canvas.height;
-            createFirework(x, y);
-            createFirework(x + 50, y - 50);
-            createFirework(x - 50, y + 50);
-        }
-
-        // هر جای صفحه کلیک بشه فشفشه می‌زنه
-        window.addEventListener('click', (e) => {
-            if(isMagicStarted) {
-                createFirework(e.clientX, e.clientY);
-            }
-        });
-        
-        // پشتیبانی از تاچ گوشی برای زدن فشفشه
-        window.addEventListener('touchstart', (e) => {
-            if(isMagicStarted) {
-                createFirework(e.touches[0].clientX, e.touches[0].clientY);
-            }
-        });
-    </script>
-</body>
-</html>}
-
-        @keyframes popUp {
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
-            100% { transform: translateY(0px); }
-        }
-
-        /* قلب‌های معلق تو پس‌زمینه */
-        .floating-heart {
-            position: absolute;
+        .subtitle {
             font-size: 1.5rem;
-            bottom: -50px;
-            animation: floatUp linear forwards;
-            opacity: 0.8;
-            z-index: 1;
+            color: #e0d4ff;
+            margin-bottom: 25px;
+            font-weight: 500;
         }
 
-        @keyframes floatUp {
-            to {
-                transform: translateY(-120vh) rotate(360deg);
-                opacity: 0;
-            }
+        .message {
+            font-size: 1.1rem;
+            line-height: 1.9;
+            color: #b8a5d6;
+            font-weight: 300;
+            text-align: justify;
+            text-align-last: center;
+        }
+
+        .highlight {
+            color: #ff7eb3;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(255, 126, 179, 0.6);
+        }
+
+        /* افکت نویز ظریف روی کارت */
+        .glass-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 30px;
+            background: url('https://grainy-gradients.vercel.app/noise.svg');
+            opacity: 0.15;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
 
-    <!-- قسمت اول: کادو -->
-    <div id="gift-container">
-        <h2>یه سورپرایز برای تینا ✨</h2>
-        <div class="gift-box" onclick="openGift()">🎁</div>
-        <div class="click-text">بزن روی کادو! 👆</div>
-    </div>
+    <!-- کانتینر رندر 3D -->
+    <div id="webgl-container"></div>
 
-    <!-- قسمت دوم: کارت تبریک -->
-    <div id="celebration-card" class="card">
-        <h1>تولدت مبارک تینا! 🎀</h1>
-        <p>امیدوارم امسال برات پر از اتفاقای قشنگ، خنده‌های از ته دل و روزای صورتی باشه! هرچی آرزوی خوبه مال تو... 🌸💖</p>
-        <div class="cake">🎂✨</div>
+    <!-- کانتینر UI -->
+    <div id="ui-layer">
+        <div class="glass-card" id="birthday-card">
+            <h1 class="title">TINA</h1>
+            <div class="subtitle">تولدت مبارک! 🥂</div>
+            <p class="message">
+                می‌گن هر آدمی تو این دنیا یه فرکانس خاص داره... 
+                امیدوارم امسال فرکانس زندگیت روی <span class="highlight">بالاترین مدار خوشبختی</span> تنظیم بشه و هر روزت مثل این کهکشان، پر از نور و شگفتی باشه. 🌌✨
+            </p>
+        </div>
     </div>
 
     <script>
-        function openGift() {
-            // مخفی کردن کادو
-            document.getElementById('gift-container').style.display = 'none';
-            
-            // نشون دادن کارت تبریک با افکت
-            const card = document.getElementById('celebration-card');
-            card.classList.add('show');
+        // ==========================================
+        // بخش اول: راه‌اندازی کهکشان 3D با Three.js
+        // ==========================================
+        const container = document.getElementById('webgl-container');
+        
+        // تنظیمات صحنه، دوربین و رندر
+        const scene = new THREE.Scene();
+        // اضافه کردن یه مه ملایم برای عمق دادن به تصویر
+        scene.fog = new THREE.FogExp2(0x020205, 0.0015);
 
-            // ساختن قلب‌های معلق تو صفحه
-            createHearts();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.z = 400;
+        camera.position.y = 100;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // بهینه‌سازی برای گوشی
+        container.appendChild(renderer.domElement);
+
+        // ساخت ذرات (Particles)
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 8000; // تعداد ستاره‌ها
+
+        const posArray = new Float32Array(particlesCount * 3);
+        const colorsArray = new Float32Array(particlesCount * 3);
+
+        const color1 = new THREE.Color(0xff7eb3); // صورتی درخشان
+        const color2 = new THREE.Color(0x7a00ff); // بنفش کهکشانی
+
+        for(let i = 0; i < particlesCount * 3; i+=3) {
+            // پخش کردن ذرات به شکل یک کهکشان مارپیچ/دایره‌ای
+            const radius = Math.random() * 800;
+            const theta = Math.random() * Math.PI * 2;
+            const yOffset = (Math.random() - 0.5) * 150 * (1 - radius/800); 
+
+            posArray[i] = Math.cos(theta) * radius;     // x
+            posArray[i+1] = yOffset;                    // y
+            posArray[i+2] = Math.sin(theta) * radius;   // z
+
+            // ترکیب رنگ‌ها
+            const mixedColor = color1.clone().lerp(color2, Math.random());
+            colorsArray[i] = mixedColor.r;
+            colorsArray[i+1] = mixedColor.g;
+            colorsArray[i+2] = mixedColor.b;
         }
 
-        function createHearts() {
-            const emojis = ['💖', '🌸', '✨', '🎀', '💕'];
-            const heartCount = 40; // تعداد قلب‌ها
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colorsArray, 3));
 
-            for (let i = 0; i < heartCount; i++) {
-                setTimeout(() => {
-                    const heart = document.createElement('div');
-                    heart.classList.add('floating-heart');
-                    
-                    // انتخاب رندوم اموجی
-                    heart.innerText = emojis[Math.floor(Math.random() * emojis.length)];
-                    
-                    // موقعیت و اندازه رندوم
-                    heart.style.left = Math.random() * 100 + 'vw';
-                    heart.style.animationDuration = (Math.random() * 3 + 3) + 's'; // بین 3 تا 6 ثانیه
-                    heart.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
-                    
-                    document.body.appendChild(heart);
-                    
-                    // پاک کردن قلب بعد از اتمام انیمیشن که صفحه سنگین نشه
-                    setTimeout(() => {
-                        heart.remove();
-                    }, 6000);
-                }, i * 100); // قلب‌ها با فاصله زمانی میان بالا
+        // متریال درخشان برای ستاره‌ها
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 3.5,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending, // افکت نورانی شدن موقع روی هم افتادن
+            transparent: true,
+            opacity: 0.8
+        });
+
+        const particleMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particleMesh);
+
+        // تعامل با موس و تاچ
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
+        const windowHalfX = window.innerWidth / 2;
+        const windowHalfY = window.innerHeight / 2;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX - windowHalfX);
+            mouseY = (event.clientY - windowHalfY);
+        });
+
+        // پشتیبانی از گوشی
+        document.addEventListener('touchmove', (event) => {
+            if (event.touches.length > 0) {
+                mouseX = (event.touches[0].pageX - windowHalfX);
+                mouseY = (event.touches[0].pageY - windowHalfY);
             }
+        });
+
+        // حلقه انیمیشن کهکشان
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsedTime = clock.getElapsedTime();
+
+            // چرخش نرم کل کهکشان
+            particleMesh.rotation.y = elapsedTime * 0.05;
+            
+            // حرکت مواج و ارگانیک ذرات
+            particleMesh.position.y = Math.sin(elapsedTime * 0.5) * 20;
+
+            // تاثیر تاچ/موس روی زاویه دوربین (با تاخیر نرم)
+            targetX = mouseX * 0.001;
+            targetY = mouseY * 0.001;
+            
+            camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.02;
+            camera.position.y += (-mouseY * 0.5 - camera.position.y) * 0.02;
+            camera.lookAt(scene.position);
+
+            renderer.render(scene, camera);
         }
+        animate();
+
+        // آپدیت سایز صفحه در صورت چرخش گوشی
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // ==========================================
+        // بخش دوم: انیمیشن سینمایی لود شدن کارت با GSAP
+        // ==========================================
+        window.onload = () => {
+            // بعد از 1.5 ثانیه که از دیدن کهکشان لذت برد، کارت میاد بالا
+            setTimeout(() => {
+                gsap.to("#birthday-card", {
+                    duration: 2,
+                    y: 0,
+                    scale: 1,
+                    opacity: 1,
+                    ease: "elastic.out(1, 0.75)", // یه پرش خیلی نرم و لوکس
+                });
+            }, 1500);
+        };
     </script>
 </body>
 </html>
