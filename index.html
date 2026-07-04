@@ -240,8 +240,7 @@
 <body>
 
     <div id="overlay">
-        <h2>جادوی راپونزل 🛶✨</h2>
-        <p>دسترسی میکروفون رو بده و روی دکمه کلیک کن</p>
+        <p style="font-size: 1.4rem; margin-bottom: 20px;">آماده‌ای برای یه سورپرایز قشنگ؟ ✨</p>
         <button id="start-btn">ورود به قایق</button>
     </div>
 
@@ -314,7 +313,7 @@
         const hint = document.getElementById('hint');
         const flame = document.getElementById('flame');
         const music = document.getElementById('music');
-        const seaSound = document.getElementById('sea-sound'); // اضافه شدن صدای دریا
+        const seaSound = document.getElementById('sea-sound'); 
         
         let audioContext, analyser, microphone;
         let isBlownOut = false;
@@ -323,8 +322,7 @@
             overlay.style.display = 'none';
             hint.style.display = 'block';
             
-            // پلی شدن صدای دریا به محض ورود
-            seaSound.volume = 0.4; // صدای ملایم برای اینکه مزاحم نباشه
+            seaSound.volume = 0.4; 
             seaSound.play().catch(e => console.log("مرورگر اجازه پخش نداد"));
 
             try {
@@ -337,7 +335,8 @@
                 
                 detectBlow();
             } catch (err) {
-                alert("برای خاموش کردن شمع، دسترسی میکروفون الزامیه!");
+                // فقط در صورتی که کاربر دسترسی رو رد کنه این پیام نمایش داده میشه تا متوجه بشه چرا کار نمیکنه
+                alert("برای اینکه سورپرایز کار کنه، باید تایید رو بزنی!");
             }
         });
 
