@@ -21,43 +21,82 @@
         }
 
         /* ========================================== */
-        /* دریای جدید و فوق واقع‌گرایانه (Parallax Waves) */
+        /* متن جادویی تبریک تولد */
         /* ========================================== */
+        #hbd-text {
+            position: absolute;
+            top: 25%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-family: 'Times New Roman', serif; /* فونت کلاسیک و شیک */
+            font-size: 3.5rem;
+            letter-spacing: 8px;
+            font-weight: bold;
+            white-space: nowrap;
+            /* درخشش طلایی و گرم مثل فانوس‌ها */
+            text-shadow: 0 0 20px #ff9800, 0 0 40px #ffeb3b, 0 0 80px #ffeb3b;
+            
+            /* تنظیمات افکت ظاهر شدن */
+            opacity: 0;
+            filter: blur(20px);
+            transition: all 4s ease-in-out;
+            
+            /* قرارگیری پشت فانوس‌ها (فانوس‌ها روی 5 هستن) */
+            z-index: 3; 
+            pointer-events: none; /* تا مزاحم کلیک‌ها نشه */
+        }
+
+        /* کلاسی که با جاوااسکریپت اضافه میشه تا متن ظاهر بشه */
+        #hbd-text.show {
+            opacity: 0.85; /* یکم شفاف که واقعی‌تر باشه */
+            filter: blur(0px);
+            letter-spacing: 12px; /* یه باز شدن ملایم حروف */
+        }
+
+        /* ریسپانسیو برای گوشی‌های کوچیک */
+        @media (max-width: 600px) {
+            #hbd-text {
+                font-size: 2.2rem;
+                letter-spacing: 4px;
+            }
+            #hbd-text.show {
+                letter-spacing: 6px;
+            }
+        }
+        /* ========================================== */
+
+        /* دریای فوق واقع‌گرایانه (Parallax Waves) */
         #sea {
             position: absolute; bottom: 0; left: 0;
             width: 100%; height: 42%; z-index: 2;
-            /* رنگ پایه‌ی اعماق تاریک اقیانوس */
             background: linear-gradient(to bottom, #010712 0%, #031124 50%, #010408 100%);
             overflow: hidden;
             box-shadow: inset 0 15px 30px rgba(0,0,0,0.6);
         }
 
-        /* ساختار لایه‌های موج */
         .wave {
             position: absolute;
             left: 0;
-            width: 200%; /* عرض دوبرابر برای حرکت پیوسته */
+            width: 200%; 
             height: 100%;
             background-repeat: repeat-x;
             background-position: 0 bottom;
             background-size: 50% 100%;
         }
 
-        /* موج لایه اول (عقب‌تر، روشن‌تر و کندتر) */
         .wave1 {
             bottom: 10%;
             background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,0 C300,40 600,-40 1200,0 L1200,120 L0,120 Z" fill="%23031429" opacity="0.6"/></svg>');
             animation: moveWave 18s linear infinite;
         }
 
-        /* موج لایه دوم (وسط، حرکت معکوس برای حس تلاطم واقعی) */
         .wave2 {
             bottom: 5%;
             background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,20 C300,-20 600,60 1200,20 L1200,120 L0,120 Z" fill="%23020e1f" opacity="0.8"/></svg>');
             animation: moveWave 12s linear infinite reverse;
         }
 
-        /* موج لایه سوم (جلوتر، تاریک‌تر و تندتر) */
         .wave3 {
             bottom: -5%;
             background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,40 C300,80 600,-20 1200,40 L1200,120 L0,120 Z" fill="%23010710" opacity="1"/></svg>');
@@ -69,7 +108,6 @@
             100% { transform: translateX(-50%); }
         }
 
-        /* رفلکس و بازتاب نور شمع روی سطح آب مواج */
         .sea-reflection {
             position: absolute;
             top: 0; left: 50%; transform: translateX(-50%);
@@ -84,7 +122,6 @@
             0% { opacity: 0.5; }
             100% { opacity: 0.9; }
         }
-        /* ========================================== */
 
         /* قایق با پرسپکتیو سه‌بعدی واقعی */
         #boat-container {
@@ -239,6 +276,7 @@
 </head>
 <body>
 
+    <!-- صفحه شروع ساده و رازآلود -->
     <div id="overlay">
         <p style="font-size: 1.4rem; margin-bottom: 20px;">آماده‌ای برای یه سورپرایز قشنگ؟ ✨</p>
         <button id="start-btn">ورود به قایق</button>
@@ -247,6 +285,9 @@
     <div id="hint">نزدیک میکروفون شو و شمع رو فوت کن! 🌬️</div>
 
     <canvas id="starfield"></canvas>
+    
+    <!-- متن جادویی تولد (مخفی تا قبل از فوت کردن شمع) -->
+    <div id="hbd-text">HBD TINA ❤️</div>
 
     <div id="sea">
         <div class="wave wave1"></div>
@@ -335,7 +376,6 @@
                 
                 detectBlow();
             } catch (err) {
-                // فقط در صورتی که کاربر دسترسی رو رد کنه این پیام نمایش داده میشه تا متوجه بشه چرا کار نمیکنه
                 alert("برای اینکه سورپرایز کار کنه، باید تایید رو بزنی!");
             }
         });
@@ -390,6 +430,11 @@
             
             music.play();
             setInterval(spawnLantern, 200); 
+
+            // تجلی متن جادویی تولد در آسمان با ۳ ثانیه تاخیر
+            setTimeout(() => {
+                document.getElementById('hbd-text').classList.add('show');
+            }, 3000);
         }
 
         function spawnLantern() {
