@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tin birthday</title>
+    <title>تولدت مبارک - جادوی راپونزل</title>
     <style>
         /* تنظیمات پایه */
         body, html {
@@ -29,32 +29,27 @@
             left: 50%;
             transform: translateX(-50%);
             color: #fff;
-            font-family: 'Times New Roman', serif; /* فونت کلاسیک و شیک */
+            font-family: 'Times New Roman', serif; 
             font-size: 3.5rem;
             letter-spacing: 8px;
             font-weight: bold;
             white-space: nowrap;
-            /* درخشش طلایی و گرم مثل فانوس‌ها */
             text-shadow: 0 0 20px #ff9800, 0 0 40px #ffeb3b, 0 0 80px #ffeb3b;
             
-            /* تنظیمات افکت ظاهر شدن */
             opacity: 0;
             filter: blur(20px);
             transition: all 4s ease-in-out;
             
-            /* قرارگیری پشت فانوس‌ها (فانوس‌ها روی 5 هستن) */
             z-index: 3; 
-            pointer-events: none; /* تا مزاحم کلیک‌ها نشه */
+            pointer-events: none; 
         }
 
-        /* کلاسی که با جاوااسکریپت اضافه میشه تا متن ظاهر بشه */
         #hbd-text.show {
-            opacity: 0.85; /* یکم شفاف که واقعی‌تر باشه */
+            opacity: 0.85; 
             filter: blur(0px);
-            letter-spacing: 12px; /* یه باز شدن ملایم حروف */
+            letter-spacing: 12px; 
         }
 
-        /* ریسپانسیو برای گوشی‌های کوچیک */
         @media (max-width: 600px) {
             #hbd-text {
                 font-size: 2.2rem;
@@ -278,7 +273,7 @@
 
     <!-- صفحه شروع ساده و رازآلود -->
     <div id="overlay">
-        <p style="font-size: 1.4rem; margin-bottom: 20px; font-family: Tahoma, sans-serif;">آماده ای برای سوپرایز؟ دسترسی به میکروفون یادت نره🙏🏻</p>
+        <p style="font-size: 1.4rem; margin-bottom: 20px; font-family: Tahoma, sans-serif;">Ready for Surprise?</p>
         <button id="start-btn">Click</button>
     </div>
 
@@ -393,7 +388,11 @@
             }
             let volume = sum / bufferLength;
 
-            if (volume > 35) {
+            // 👇👇👇 تنظیم حساسیت میکروفون 👇👇👇
+            // عدد فعلی 45 است. 
+            // - اگه خواستی حساسیت رو "کم" کنی (سخت‌تر فوت بشه)، عدد رو بیشتر کن (مثلا 50 یا 60).
+            // - اگه خواستی حساسیت رو "زیاد" کنی (راحت‌تر فوت بشه)، عدد رو کمتر کن (مثلا 30 یا 25).
+            if (volume > 45) {
                 triggerRapunzelMagic();
             } else {
                 requestAnimationFrame(detectBlow);
