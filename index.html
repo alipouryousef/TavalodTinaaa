@@ -1,1 +1,559 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Birthday Lanterns</title>
 
+<style>
+html,body{
+    margin:0;
+    overflow:hidden;
+    background:#000;
+    font-family:tahoma,sans-serif;
+}
+
+canvas{
+    display:block;
+}
+
+#overlay{
+    position:fixed;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    pointer-events:none;
+    z-index:20;
+}
+
+#startBtn,
+#blowBtn{
+    pointer-events:auto;
+    border:none;
+    border-radius:40px;
+    padding:16px 30px;
+    font-size:20px;
+    cursor:pointer;
+    background:rgba(255,255,255,.15);
+    color:#fff;
+    backdrop-filter:blur(10px);
+    box-shadow:0 0 25px rgba(255,255,255,.3);
+}
+
+#blowBtn{
+    display:none;
+    margin-top:20px;
+}
+
+#message{
+    margin-top:25px;
+    color:#fff;
+    font-size:24px;
+    text-align:center;
+    opacity:0;
+}
+
+#final{
+    position:fixed;
+    inset:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    color:white;
+    text-align:center;
+    opacity:0;
+    pointer-events:none;
+    z-index:50;
+}
+
+#final h1{
+    font-size:42px;
+    margin:0;
+}
+
+#final p{
+    font-size:20px;
+    margin-top:15px;
+    max-width:500px;
+}
+</style>
+</head>
+<body>
+
+<div id="overlay">
+    <button id="startBtn">✨ شروع جشن تولد ✨</button>
+    <div id="message">آرزو کن و شمع را فوت کن 🎂</div>
+    <button id="blowBtn">فوت کن</button>
+</div>
+
+<div id="final">
+    <h1>تولدت مبارک ❤️</h1>
+    <p>امشب همه فانوس‌های آسمان برای تو روشن شده‌اند.</p>
+</div>
+
+<script type="module">
+
+// ================= IMPORTS =================
+
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.167/build/three.module.js";
+import {GLTFLoader} from "https://cdn.jsdelivr.net/npm/three@0.167/examples/jsm/loaders/GLTFLoader.js";
+import {GSAP} from "https://cdn.jsdelivr.net/npm/gsap@3.12.5/index.js";
+
+const gsap = GSAP;
+
+// ================= Scene setup =================
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x02040a,0.015);
+
+// ================= Renderer =================
+
+const renderer = new THREE.WebGLRenderer({
+    antialias:true
+});
+
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+// ================= Camera =================
+
+const camera = new THREE.PerspectiveCamera(
+    65,
+    innerWidth/innerHeight,
+    0.1,
+    1000
+);
+
+camera.position.set(0,2,4);
+
+// ================= Lights =================
+
+scene.add(new THREE.AmbientLight(0x6f7cff,.4));
+
+const moon = new THREE.DirectionalLight(0x88aaff,.6);
+moon.position.set(5,10,3);
+scene.add(moon);
+
+// ================= Water =================
+
+const waterGeo = new THREE.PlaneGeometry(500,500,200,200);
+const waterMat = new THREE.MeshPhongMaterial({
+    color:0x081320,
+    shininess:100,
+    transparent:true,
+    opacity:.95
+});
+
+const water = new THREE.Mesh(waterGeo,waterMat);
+water.rotation.x = -Math.PI/2;
+scene.add(water);
+
+// ================= Stars =================
+
+const starGeo = new THREE.BufferGeometry();
+const starCount = 3000;
+
+const starPos = [];
+
+for(let i=0;i<starCount;i++){
+    starPos.push(
+        (Math.random()-0.5)*800,
+        Math.random()*300+20,
+        (Math.random()-0.5)*800
+    );
+}
+
+starGeo.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(starPos,3)
+);
+
+const stars = new THREE.Points(
+    starGeo,
+    new THREE.PointsMaterial({
+        color:0xffffff,
+        size:1
+    })
+);
+
+scene.add(stars);
+
+// ================= Floating particles =================
+
+const particleGeo = new THREE.BufferGeometry();
+const particlePos = [];
+
+for(let i=0;i<200;i++){
+    particlePos.push(
+        (Math.random()-0.5)*20,
+        Math.random()*8,
+        (Math.random()-0.5)*20
+    );
+}
+
+particleGeo.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(particlePos,3)
+);
+
+const particles = new THREE.Points(
+    particleGeo,
+    new THREE.PointsMaterial({
+        color:0xfff3c4,
+        size:0.08
+    })
+);
+
+scene.add(particles);
+
+// ================= Boat =================
+
+const loader = new GLTFLoader();
+let boat;
+
+function createBoatPlaceholder(){
+
+    const g = new THREE.Group();
+
+    const body = new THREE.Mesh(
+        new THREE.BoxGeometry(4,.8,2),
+        new THREE.MeshStandardMaterial({
+            color:0x4d2f17
+        })
+    );
+
+    g.add(body);
+    scene.add(g);
+    boat = g;
+}
+
+loader.load(
+    "./boat.glb",
+    gltf=>{
+        boat = gltf.scene;
+        boat.scale.set(2,2,2);
+        scene.add(boat);
+    },
+    undefined,
+    ()=>createBoatPlaceholder()
+);
+
+// ================= Cake =================
+
+let cake;
+let flame;
+let flameLight;
+
+function createFlame(){
+
+    flameLight = new THREE.PointLight(
+        0xffaa44,
+        2,
+        6
+    );
+
+    flameLight.position.set(0,1.8,0);
+
+    const sprite = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+            color:0xffcc66
+        })
+    );
+
+    sprite.scale.set(.35,.5,.35);
+    flameLight.add(sprite);
+
+    flame = flameLight;
+    cake.add(flameLight);
+}
+
+function createCakePlaceholder(){
+
+    cake = new THREE.Group();
+
+    const base = new THREE.Mesh(
+        new THREE.CylinderGeometry(1,1,.7,32),
+        new THREE.MeshStandardMaterial({
+            color:0xffb6c1
+        })
+    );
+
+    cake.add(base);
+
+    const candle = new THREE.Mesh(
+        new THREE.CylinderGeometry(.05,.05,.4,16),
+        new THREE.MeshStandardMaterial({
+            color:0xffffff
+        })
+    );
+
+    candle.position.y=.55;
+    cake.add(candle);
+
+    cake.position.set(0,1,-4);
+
+    scene.add(cake);
+
+    createFlame();
+}
+
+loader.load(
+    "./cake.glb",
+    gltf=>{
+        cake = gltf.scene;
+        cake.scale.set(1.5,1.5,1.5);
+        cake.position.set(0,1,-4);
+        scene.add(cake);
+        createFlame();
+    },
+    undefined,
+    ()=>createCakePlaceholder()
+);
+
+// ================= Audio =================
+
+const music = new Audio("./music.m4a");
+music.loop=false;
+
+// ================= Lantern System =================
+
+const lanterns = [];
+
+function createLantern(){
+
+    const group = new THREE.Group();
+
+    const body = new THREE.Mesh(
+        new THREE.BoxGeometry(.4,.6,.4),
+        new THREE.MeshBasicMaterial({
+            color:0xffc45a
+        })
+    );
+
+    const light = new THREE.PointLight(
+        0xffb347,
+        2,
+        8
+    );
+
+    group.add(body);
+    group.add(light);
+
+    group.position.set(
+        (Math.random()-0.5)*25,
+        Math.random()*2+2,
+        (Math.random()-0.5)*25
+    );
+
+    group.userData.speed =
+        0.01+Math.random()*0.03;
+
+    group.userData.drift =
+        (Math.random()-0.5)*0.01;
+
+    scene.add(group);
+    lanterns.push(group);
+}
+
+function launchLanterns(){
+
+    for(let i=0;i<120;i++){
+        createLantern();
+    }
+
+    gsap.to("#final",{
+        opacity:1,
+        duration:3,
+        delay:8
+    });
+}
+
+// ================= UI =================
+
+const startBtn =
+document.getElementById("startBtn");
+
+const blowBtn =
+document.getElementById("blowBtn");
+
+const msg =
+document.getElementById("message");
+
+// ================= Interaction =================
+
+startBtn.onclick = ()=>{
+
+    startBtn.style.display="none";
+
+    gsap.to(camera.position,{
+        z:1.8,
+        duration:4,
+        ease:"power2.inOut"
+    });
+
+    gsap.to(msg,{
+        opacity:1,
+        duration:2
+    });
+
+    blowBtn.style.display="block";
+};
+
+function blowCandle(){
+
+    if(!flame) return;
+
+    cake.remove(flame);
+
+    for(let i=0;i<15;i++){
+
+        const smoke = new THREE.Mesh(
+            new THREE.SphereGeometry(.05),
+            new THREE.MeshBasicMaterial({
+                color:0x999999,
+                transparent:true
+            })
+        );
+
+        smoke.position.set(
+            cake.position.x,
+            cake.position.y+1.8,
+            cake.position.z
+        );
+
+        scene.add(smoke);
+
+        gsap.to(smoke.position,{
+            y:smoke.position.y+2,
+            x:smoke.position.x+(Math.random()-.5),
+            z:smoke.position.z+(Math.random()-.5),
+            duration:2
+        });
+
+        gsap.to(smoke.material,{
+            opacity:0,
+            duration:2
+        });
+    }
+
+    music.play().catch(()=>{});
+
+    launchLanterns();
+
+    blowBtn.style.display="none";
+    msg.style.display="none";
+}
+
+blowBtn.onclick = blowCandle;
+
+renderer.domElement.addEventListener(
+    "click",
+    e=>{
+
+        const mouse = new THREE.Vector2(
+            e.clientX/innerWidth*2-1,
+            -(e.clientY/innerHeight)*2+1
+        );
+
+        const ray = new THREE.Raycaster();
+        ray.setFromCamera(mouse,camera);
+
+        if(flame){
+            const hit =
+            ray.intersectObject(flame,true);
+
+            if(hit.length){
+                blowCandle();
+            }
+        }
+    }
+);
+
+// ================= Resize =================
+
+addEventListener("resize",()=>{
+
+    camera.aspect =
+    innerWidth/innerHeight;
+
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(
+        innerWidth,
+        innerHeight
+    );
+});
+
+// ================= Render Loop =================
+
+const clock = new THREE.Clock();
+
+function animate(){
+
+    requestAnimationFrame(animate);
+
+    const t = clock.getElapsedTime();
+
+    const pos =
+    water.geometry.attributes.position;
+
+    for(let i=0;i<pos.count;i++){
+
+        const x = pos.getX(i);
+        const y =
+            Math.sin(x*0.1+t)*0.05;
+
+        pos.setZ(i,y);
+    }
+
+    pos.needsUpdate=true;
+
+    stars.material.size =
+        1+Math.sin(t*2)*0.3;
+
+    particles.rotation.y += .0008;
+
+    if(boat){
+
+        boat.position.y =
+            Math.sin(t)*0.1;
+
+        boat.rotation.z =
+            Math.sin(t*.8)*0.03;
+
+        camera.position.y =
+            2+
+            Math.sin(t)*0.03;
+    }
+
+    if(flame){
+        flame.intensity =
+            2+
+            Math.sin(t*15)*0.4;
+    }
+
+    lanterns.forEach(l=>{
+
+        l.position.y +=
+            l.userData.speed;
+
+        l.position.x +=
+            l.userData.drift;
+
+        l.rotation.y += .01;
+    });
+
+    renderer.render(scene,camera);
+}
+
+animate();
+
+</script>
+
+</body>
+  </html>
