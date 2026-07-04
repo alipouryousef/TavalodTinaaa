@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تولدت مبارک - جادوی راپونزل</title>
     <style>
-        /* تنظیات پایه */
+        /* تنظیمات پایه */
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             background: #020111;
@@ -50,17 +50,46 @@
             border-top: 5px solid #5d4037;
         }
 
-        /* کیک و شمع */
+        /* کیک سه‌بعدی با CSS */
         #cake {
-            position: absolute; bottom: 15vh; left: 50%; transform: translateX(-50%);
-            font-size: 100px; z-index: 11; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.8));
+            position: absolute; 
+            bottom: 12vh; /* موقعیت کیک روی قایق */
+            left: 50%; 
+            transform: translateX(-50%);
+            width: 140px; 
+            height: 60px; 
+            background: linear-gradient(to right, #4a2c11, #7a461c, #4a2c11); /* بدنه شکلاتی */
+            border-bottom-left-radius: 70px 20px; 
+            border-bottom-right-radius: 70px 20px;
+            z-index: 11; 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.9);
         }
 
+        /* سطح روی کیک (خامه) */
+        #cake::before {
+            content: '';
+            position: absolute;
+            top: -25px; /* تنظیم سطح مقطع */
+            left: 0;
+            width: 140px;
+            height: 50px;
+            background: radial-gradient(ellipse at center, #fdfbf7 0%, #e3d5c8 100%); /* رنگ وانیلی */
+            border-radius: 50%;
+            box-shadow: inset 0 -3px 8px rgba(0,0,0,0.1);
+        }
+
+        /* شمع (تنظیم شده برای نشستن روی کیک جدید) */
         #candle {
-            position: absolute; top: -35px; left: 50%; transform: translateX(-50%);
-            width: 12px; height: 45px;
+            position: absolute; 
+            top: -55px; /* قرارگیری دقیق در مرکز خامه */
+            left: 50%; 
+            transform: translateX(-50%);
+            width: 12px; 
+            height: 45px;
             background: linear-gradient(to right, #f4e4c1, #fff, #d3c09b);
-            border-radius: 3px; box-shadow: inset 0 -5px 10px rgba(0,0,0,0.2);
+            border-radius: 3px; 
+            box-shadow: inset 0 -5px 10px rgba(0,0,0,0.2), 0 5px 15px rgba(0,0,0,0.4);
+            z-index: 12;
         }
 
         #flame {
@@ -139,8 +168,8 @@
     </div>
 
     <div id="boat"></div>
+    
     <div id="cake">
-        🎂
         <div id="candle">
             <div id="flame"></div>
         </div>
@@ -239,11 +268,9 @@
             isBlownOut = true;
             hint.style.display = 'none';
             
-            // ✨ فیکس باگ: متوقف کردن کامل انیمیشن و حذف شعله
             flame.style.animation = 'none'; 
             flame.style.display = 'none';
             
-            // ✨ افکت جدید: ایجاد دود بعد از خاموش شدن شمع
             const candle = document.getElementById('candle');
             const smoke = document.createElement('div');
             smoke.style.position = 'absolute';
@@ -252,20 +279,18 @@
             smoke.style.transform = 'translateX(-50%)';
             smoke.style.width = '15px';
             smoke.style.height = '15px';
-            smoke.style.background = 'rgba(200, 200, 200, 0.6)'; // رنگ دود
+            smoke.style.background = 'rgba(200, 200, 200, 0.6)'; 
             smoke.style.borderRadius = '50%';
-            smoke.style.filter = 'blur(3px)'; // محو بودن دود
+            smoke.style.filter = 'blur(3px)'; 
             smoke.style.transition = 'all 1.5s ease-out';
             candle.appendChild(smoke);
 
-            // حرکت دادن دود به سمت بالا و محو شدنش
             setTimeout(() => {
                 smoke.style.top = '-80px';
                 smoke.style.opacity = '0';
                 smoke.style.transform = 'translateX(-50%) scale(3)';
             }, 50);
             
-            // پخش موزیک و ساخت فانوس‌ها
             music.play();
             setInterval(spawnLantern, 200); 
         }
