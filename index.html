@@ -1,245 +1,290 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="fa">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تولدت مبارک - راپونزل</title>
+    <title>Rapunzel Magic - 3D Realistic</title>
     <style>
-        /* استایل‌های پایه و آسمان شب */
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #060b14; /* رنگ آسمان تاریک */
-            overflow: hidden;
-            font-family: Tahoma, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: Tahoma, sans-serif; }
+        #canvas-container { width: 100vw; height: 100vh; }
+        
+        #overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 10; color: white;
         }
-
-        #sky {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
+        
+        button {
+            padding: 15px 40px; font-size: 20px; border: none; border-radius: 50px;
+            background: linear-gradient(45deg, #ff9a44, #fc6076); color: white;
+            cursor: pointer; box-shadow: 0 0 20px rgba(255, 154, 68, 0.5);
+            transition: transform 0.3s, box-shadow 0.3s; margin-top: 20px;
         }
-
-        /* دکمه شروع برای گرفتن دسترسی‌ها */
-        #start-screen {
-            position: absolute;
-            z-index: 100;
-            background: rgba(0, 0, 0, 0.8);
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
+        button:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255, 154, 68, 0.8); }
+        
+        #hint {
+            position: absolute; bottom: 10%; width: 100%; text-align: center;
+            color: rgba(255,255,255,0.7); font-size: 1.2rem; display: none; z-index: 5;
+            animation: pulse 2s infinite;
         }
-
-        #start-btn {
-            padding: 15px 30px;
-            font-size: 1.2rem;
-            background-color: #e5b05c;
-            color: #fff;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 0 15px #e5b05c;
-            transition: 0.3s;
-        }
-
-        #start-btn:hover {
-            transform: scale(1.1);
-        }
-
-        /* قایق از زاویه اول شخص (پایین صفحه) */
-        #boat-view {
-            position: absolute;
-            bottom: -50px;
-            width: 120%;
-            height: 300px;
-            background: radial-gradient(ellipse at top, #4a2e15 0%, #1a1005 100%);
-            border-top-left-radius: 50%;
-            border-top-right-radius: 50%;
-            z-index: 10;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            box-shadow: inset 0 20px 50px rgba(0,0,0,0.8);
-        }
-
-        /* کیک و شمع */
-        #cake-container {
-            position: relative;
-            margin-top: 20px;
-            font-size: 100px; /* سایز ایموجی کیک */
-        }
-
-        #candle {
-            position: absolute;
-            top: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 10px;
-            height: 40px;
-            background: linear-gradient(to bottom, #fff, #f0e6d2);
-            border-radius: 3px;
-        }
-
-        #flame {
-            position: absolute;
-            top: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 15px;
-            height: 25px;
-            background: #ff9d00;
-            border-radius: 50% 50% 20% 20%;
-            box-shadow: 0 0 20px #ff9d00, 0 0 40px #ff9d00;
-            animation: flicker 0.2s infinite alternate;
-            transition: opacity 0.5s;
-        }
-
-        @keyframes flicker {
-            0% { transform: translateX(-50%) scale(1); opacity: 0.9; }
-            100% { transform: translateX(-50%) scale(1.1); opacity: 1; }
-        }
-
-        /* استایل فانوس‌ها */
-        .lantern {
-            position: absolute;
-            bottom: -50px;
-            font-size: 30px;
-            filter: drop-shadow(0 0 15px rgba(255, 180, 50, 0.8));
-            animation: floatUp linear forwards;
-            z-index: 5;
-        }
-
-        @keyframes floatUp {
-            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
-            10% { opacity: 1; }
-            100% { transform: translateY(-120vh) rotate(20deg); opacity: 0; }
-        }
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
     </style>
+    
+    <!-- Import Maps برای لود کردن Three.js به صورت مدرن -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
 </head>
 <body>
 
-    <div id="start-screen">
-        <h2 style="color: white; margin-bottom: 20px;">آماده‌ی یک سوپرایز هستی؟</h2>
-        <button id="start-btn">سوار قایق شو 🛶</button>
+    <div id="overlay">
+        <h1>آماده‌ی ورود به دنیای راپونزل هستی؟</h1>
+        <p>دسترسی میکروفون رو بده و بعد از ورود، شمع رو فوت کن!</p>
+        <button id="startBtn">ورود به قایق 🛶</button>
     </div>
 
-    <div id="sky"></div>
+    <div id="hint">نزدیک میکروفون شو و شمع رو فوت کن! 🌬️🕯️</div>
+    <div id="canvas-container"></div>
+    <audio id="music" src="music.m4a" preload="auto"></audio>
 
-    <div id="boat-view">
-        <div id="cake-container">
-            🎂
-            <div id="candle">
-                <div id="flame"></div>
-            </div>
-        </div>
-    </div>
+    <script type="module">
+        import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-    <audio id="bg-music" src="music.m4a"></audio>
+        // متغیرهای اصلی
+        let scene, camera, renderer, composer;
+        let water, candleFlame, candleLight;
+        let lanterns = [];
+        let isBlown = false;
+        let audioContext, analyser, microphone;
 
-    <script>
-        const startBtn = document.getElementById('start-btn');
-        const startScreen = document.getElementById('start-screen');
-        const flame = document.getElementById('flame');
-        const music = document.getElementById('bg-music');
-        const sky = document.getElementById('sky');
-        
-        let audioContext;
-        let analyser;
-        let microphone;
-        let isBlownOut = false;
+        init3DScene();
 
-        // مرحله اول: گرفتن دسترسی میکروفون با کلیک کاربر
-        startBtn.addEventListener('click', async () => {
-            startScreen.style.display = 'none';
+        // 1. راه‌اندازی صحنه 3D
+        function init3DScene() {
+            const container = document.getElementById('canvas-container');
+
+            // صحنه و دوربین (زاویه اول شخص)
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x020205, 0.002); // مه غلیظ شبانه
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 5, 10);
+            camera.lookAt(0, 5, 0);
+
+            // رندر انجین
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.toneMapping = THREE.ReinhardToneMapping;
+            container.appendChild(renderer.domElement);
+
+            // افکت بلوم (درخشش جادویی)
+            const renderScene = new RenderPass(scene, camera);
+            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+            bloomPass.threshold = 0.2;
+            bloomPass.strength = 2.5; // قدرت درخشش
+            bloomPass.radius = 1;
+
+            composer = new EffectComposer(renderer);
+            composer.addPass(renderScene);
+            composer.addPass(bloomPass);
+
+            // نورپردازی محیط تاریک
+            const ambientLight = new THREE.AmbientLight(0x111122, 0.5);
+            scene.add(ambientLight);
+
+            createEnvironment();
+            createBoatAndCake();
             
+            window.addEventListener('resize', onWindowResize, false);
+            animate();
+        }
+
+        // 2. ساخت محیط (آب تاریک)
+        function createEnvironment() {
+            const waterGeometry = new THREE.PlaneGeometry(1000, 1000, 32, 32);
+            const waterMaterial = new THREE.MeshStandardMaterial({
+                color: 0x001e0f,
+                roughness: 0.1, // رفلکس بالا برای انعکاس نور فانوس‌ها
+                metalness: 0.8,
+            });
+            water = new THREE.Mesh(waterGeometry, waterMaterial);
+            water.rotation.x = -Math.PI / 2;
+            water.position.y = 0;
+            scene.add(water);
+        }
+
+        // 3. ساخت نمای قایق و کیک
+        function createBoatAndCake() {
+            // نمای قایق (ساده‌شده برای اول شخص)
+            const boatGeo = new THREE.CylinderGeometry(8, 8, 2, 32, 1, false, 0, Math.PI);
+            const boatMat = new THREE.MeshStandardMaterial({ color: 0x3d2314, roughness: 0.9 });
+            const boat = new THREE.Mesh(boatGeo, boatMat);
+            boat.rotation.x = Math.PI / 2;
+            boat.position.set(0, 1, 8);
+            scene.add(boat);
+
+            // کیک
+            const cakeGeo = new THREE.CylinderGeometry(1.5, 1.5, 1, 32);
+            const cakeMat = new THREE.MeshStandardMaterial({ color: 0x332211 });
+            const cake = new THREE.Mesh(cakeGeo, cakeMat);
+            cake.position.set(0, 2, 5);
+            scene.add(cake);
+
+            // شمع
+            const candleGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.8);
+            const candleMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+            const candle = new THREE.Mesh(candleGeo, candleMat);
+            candle.position.set(0, 2.9, 5);
+            scene.add(candle);
+
+            // شعله شمع (جنس درخشان برای بلوم)
+            const flameGeo = new THREE.SphereGeometry(0.15, 16, 16);
+            const flameMat = new THREE.MeshBasicMaterial({ color: 0xffa500 }); // رنگ نارنجی خالص
+            candleFlame = new THREE.Mesh(flameGeo, flameMat);
+            candleFlame.position.set(0, 3.4, 5);
+            candleFlame.scale.y = 2; // کشیدگی شعله
+            scene.add(candleFlame);
+
+            // نوری که شمع به محیط می‌ده
+            candleLight = new THREE.PointLight(0xffa500, 5, 15);
+            candleLight.position.set(0, 3.5, 5);
+            scene.add(candleLight);
+        }
+
+        // 4. تشخیص فوت با میکروفون
+        document.getElementById('startBtn').addEventListener('click', async () => {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('hint').style.display = 'block';
+
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioContext.createAnalyser();
                 microphone = audioContext.createMediaStreamSource(stream);
-                
                 microphone.connect(analyser);
                 analyser.fftSize = 256;
-                
-                // شروع گوش دادن به صدای محیط
-                detectBlow();
+                listenToBlow();
             } catch (err) {
-                alert("برای فوت کردن شمع، باید دسترسی میکروفون رو به مرورگر بدی!");
+                alert("بدون میکروفون که نمی‌شه شمع رو فوت کرد! دسترسی بده رفیق.");
             }
         });
 
-        // مرحله دوم: تشخیص صدای فوت کردن
-        function detectBlow() {
-            if (isBlownOut) return;
+        function listenToBlow() {
+            if (isBlown) return;
+            requestAnimationFrame(listenToBlow);
 
             const bufferLength = analyser.frequencyBinCount;
             const dataArray = new Uint8Array(bufferLength);
             analyser.getByteFrequencyData(dataArray);
 
-            // محاسبه میانگین صدا (ولوم)
             let sum = 0;
-            for (let i = 0; i < bufferLength; i++) {
-                sum += dataArray[i];
-            }
-            let averageVolume = sum / bufferLength;
+            for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
+            let volume = sum / bufferLength;
 
-            // اگه ولوم از یه حدی بالاتر رفت (یعنی کاربر فوت کرد)
-            // نکته: عدد 80 حساسیت رو نشون میده. اگه دیدی سخت فوت میشه، عددش رو کمتر کن (مثلا 60)
-            if (averageVolume > 80) {
+            // حساسیت فوت (اگه سخت بود عدد 70 رو کمتر کن)
+            if (volume > 70) {
                 triggerMagic();
-            } else {
-                requestAnimationFrame(detectBlow);
             }
         }
 
-        // مرحله سوم: اتفاقات جادویی!
+        // 5. رویداد جادویی دیزنی!
         function triggerMagic() {
-            isBlownOut = true; // جلوگیری از تکرار
+            isBlown = true;
+            document.getElementById('hint').style.display = 'none';
             
-            // خاموش شدن شمع
-            flame.style.opacity = '0';
-            
-            // پخش موزیک
+            // خاموش کردن شمع
+            scene.remove(candleFlame);
+            scene.remove(candleLight);
+
+            // پلی کردن موزیک
+            const music = document.getElementById('music');
             music.play();
-            
-            // ساخت فانوس‌ها به صورت مداوم
-            setInterval(createLantern, 300);
+
+            // تولید فانوس‌ها
+            setInterval(spawnLantern, 100); // هر 100 میلی‌ثانیه یک فانوس
         }
 
-        // تابع ساخت فانوس تو آسمون
-        function createLantern() {
-            const lantern = document.createElement('div');
-            lantern.classList.add('lantern');
-            lantern.innerText = '🏮'; // میتونی به جاش از تگ img استفاده کنی
-            
-            // موقعیت افقی تصادفی
-            lantern.style.left = Math.random() * 100 + 'vw';
-            
-            // سایز تصادفی برای ایجاد عمق
-            const size = Math.random() * 20 + 20; 
-            lantern.style.fontSize = size + 'px';
-            
-            // سرعت حرکت تصادفی (بین 5 تا 12 ثانیه)
-            const duration = Math.random() * 7 + 5; 
-            lantern.style.animationDuration = duration + 's';
-            
-            sky.appendChild(lantern);
-            
-            // حذف فانوس از رم (DOM) بعد از پایان انیمیشن
-            setTimeout(() => {
-                lantern.remove();
-            }, duration * 1000);
+        function spawnLantern() {
+            if(lanterns.length > 300) return; // محدودیت برای افت نکردن فریم‌ریت
+
+            // متریال درخشان فانوس
+            const lanternGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.8, 16);
+            const lanternMat = new THREE.MeshBasicMaterial({ color: 0xffcc00 }); // رنگ زرد/طلایی درخشان
+            const lantern = new THREE.Mesh(lanternGeo, lanternMat);
+
+            // موقعیت رندوم دور تا دور قایق
+            const radius = 20 + Math.random() * 80;
+            const angle = Math.random() * Math.PI * 2;
+            lantern.position.x = Math.cos(angle) * radius;
+            lantern.position.z = Math.sin(angle) * radius;
+            lantern.position.y = -2; // از پایین آب میان بالا
+
+            // اضافه کردن یه نور کوچیک به هر فانوس
+            const light = new THREE.PointLight(0xffaa00, 2, 10);
+            lantern.add(light);
+
+            // ذخیره سرعت رندوم برای انیمیشن نرم
+            lantern.userData = {
+                speedY: 0.05 + Math.random() * 0.05,
+                driftX: (Math.random() - 0.5) * 0.02,
+                driftZ: (Math.random() - 0.5) * 0.02
+            };
+
+            scene.add(lantern);
+            lanterns.push(lantern);
+        }
+
+        // 6. لوپ رندر و انیمیشن‌ها
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = Date.now() * 0.005;
+
+            // لرزش شعله شمع قبل از فوت شدن
+            if (!isBlown && candleFlame) {
+                candleFlame.scale.x = 1 + Math.sin(time * 5) * 0.1;
+                candleFlame.scale.z = 1 + Math.cos(time * 5) * 0.1;
+                candleLight.intensity = 4 + Math.sin(time * 10);
+            }
+
+            // حرکت فانوس‌ها به سمت آسمان
+            lanterns.forEach((lantern, index) => {
+                lantern.position.y += lantern.userData.speedY;
+                lantern.position.x += lantern.userData.driftX;
+                lantern.position.z += lantern.userData.driftZ;
+                
+                // تکان خوردن ملایم تو هوا
+                lantern.rotation.x = Math.sin(time + index) * 0.1;
+                lantern.rotation.z = Math.cos(time + index) * 0.1;
+
+                // اگه خیلی رفتن بالا حذف بشن (بهینه‌سازی رم)
+                if (lantern.position.y > 100) {
+                    scene.remove(lantern);
+                    lanterns.splice(index, 1);
+                }
+            });
+
+            // موج ملایم آب
+            if(water) water.position.y = Math.sin(time * 0.2) * 0.2;
+
+            // رندر با افکت‌های Bloom
+            composer.render();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
         }
     </script>
 </body>
