@@ -1,0 +1,82 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html,
+body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#000;
+    font-family:serif;
+}
+
+canvas{
+    display:block;
+    width:100%;
+    height:100%;
+}
+
+#overlay{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    background:rgba(0,0,0,.75);
+    color:white;
+    z-index:10;
+    transition:1s;
+}
+
+#overlay.hidden{
+    opacity:0;
+    pointer-events:none;
+}
+
+#overlay h1{
+    font-size:3rem;
+    margin-bottom:20px;
+}
+
+#overlay p{
+    font-size:1.2rem;
+    margin-bottom:30px;
+}
+
+button{
+    padding:15px 40px;
+    border:none;
+    border-radius:40px;
+    background:#f8c96d;
+    color:#111;
+    font-size:18px;
+    cursor:pointer;
+}
+
+#message{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    color:white;
+    font-size:3rem;
+    opacity:0;
+    pointer-events:none;
+    z-index:9;
+    transition:2s;
+}
+
+#message.show{
+    opacity:1;
+    pointer-events:auto;
+}
+
+#replayBtn{
+    margin-top:30px;
+}
