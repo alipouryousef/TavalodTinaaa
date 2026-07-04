@@ -10,8 +10,8 @@
             margin: 0; padding: 0; width: 100%; height: 100%;
             background: #020111;
             overflow: hidden; font-family: Tahoma, sans-serif;
-            position: fixed; /* فیکس مشکل اسکرول */
-            touch-action: none; /* جلوگیریاز اسکرول لمسی در موبایل */
+            position: fixed; 
+            touch-action: none; 
         }
 
         /* بوم نقاشی برای ستاره‌ها */
@@ -20,38 +20,79 @@
             width: 100%; height: 60%; z-index: 1;
         }
 
-        /* دریا و انعکاس آب */
+        /* ========================================== */
+        /* دریای جدید و فوق واقع‌گرایانه (Parallax Waves) */
+        /* ========================================== */
         #sea {
             position: absolute; bottom: 0; left: 0;
-            width: 100%; height: 40%; z-index: 2;
-            background: linear-gradient(to bottom, #010a15 0%, #05162b 100%);
-            box-shadow: inset 0 10px 20px rgba(0,0,0,0.5);
+            width: 100%; height: 42%; z-index: 2;
+            /* رنگ پایه‌ی اعماق تاریک اقیانوس */
+            background: linear-gradient(to bottom, #010712 0%, #031124 50%, #010408 100%);
             overflow: hidden;
+            box-shadow: inset 0 15px 30px rgba(0,0,0,0.6);
         }
 
-        /* امواج دریا */
+        /* ساختار لایه‌های موج */
         .wave {
-            position: absolute; width: 200%; height: 100%;
-            background: radial-gradient(ellipse at center, rgba(255,255,255,0.05) 0%, transparent 50%);
-            animation: waveMotion 10s infinite linear;
+            position: absolute;
+            left: 0;
+            width: 200%; /* عرض دوبرابر برای حرکت پیوسته */
+            height: 100%;
+            background-repeat: repeat-x;
+            background-position: 0 bottom;
+            background-size: 50% 100%;
         }
 
-        @keyframes waveMotion {
-            0% { transform: translateX(0) scaleY(1); }
-            50% { transform: translateX(-25%) scaleY(1.2); }
-            100% { transform: translateX(-50%) scaleY(1); }
+        /* موج لایه اول (عقب‌تر، روشن‌تر و کندتر) */
+        .wave1 {
+            bottom: 10%;
+            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,0 C300,40 600,-40 1200,0 L1200,120 L0,120 Z" fill="%23031429" opacity="0.6"/></svg>');
+            animation: moveWave 18s linear infinite;
         }
 
+        /* موج لایه دوم (وسط، حرکت معکوس برای حس تلاطم واقعی) */
+        .wave2 {
+            bottom: 5%;
+            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,20 C300,-20 600,60 1200,20 L1200,120 L0,120 Z" fill="%23020e1f" opacity="0.8"/></svg>');
+            animation: moveWave 12s linear infinite reverse;
+        }
+
+        /* موج لایه سوم (جلوتر، تاریک‌تر و تندتر) */
+        .wave3 {
+            bottom: -5%;
+            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,40 C300,80 600,-20 1200,40 L1200,120 L0,120 Z" fill="%23010710" opacity="1"/></svg>');
+            animation: moveWave 8s linear infinite;
+        }
+
+        @keyframes moveWave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* رفلکس و بازتاب نور شمع روی سطح آب مواج */
+        .sea-reflection {
+            position: absolute;
+            top: 0; left: 50%; transform: translateX(-50%);
+            width: 80%; height: 100%;
+            background: radial-gradient(ellipse at top, rgba(255, 157, 0, 0.15) 0%, transparent 60%);
+            z-index: 5;
+            pointer-events: none;
+            animation: reflectionPulse 4s infinite alternate;
+        }
+
+        @keyframes reflectionPulse {
+            0% { opacity: 0.5; }
+            100% { opacity: 0.9; }
+        }
         /* ========================================== */
-        /* قایق جدید با پرسپکتیو سه‌بعدی واقعی */
-        /* ========================================== */
+
+        /* قایق با پرسپکتیو سه‌بعدی واقعی */
         #boat-container {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
             height: 50vh;
-            /* ایجاد زاویه دید اول شخص (دوربین) */
             perspective: 800px; 
             z-index: 10;
             display: flex;
@@ -65,19 +106,15 @@
             max-width: 700px;
             height: 120vh;
             
-            /* بافت چوب با عمق تاریکی در جلوی قایق */
             background: 
                 linear-gradient(to top, rgba(0,0,0,0) 0%, rgba(0,0,0,0.98) 75%),
                 repeating-linear-gradient(90deg, #2c160b 0%, #2c160b 4%, #140904 4%, #140904 4.5%);
                 
-            /* جادوی چرخش سه‌بعدی برای خواباندن کف قایق روی آب */
             transform: rotateX(70deg);
             transform-origin: bottom center;
             
-            /* شکل منحنی نوک قایق */
             border-radius: 50% 50% 0 0 / 25% 25% 0 0;
             
-            /* دیواره‌های قایق (ضخامت چوب) */
             border-left: 35px solid #3d2011;
             border-right: 35px solid #3d2011;
             border-top: 15px solid #1a0c05;
@@ -85,7 +122,6 @@
             box-shadow: inset 0 0 80px 30px rgba(0,0,0,0.9);
         }
 
-        /* نیمکت چوبی جلوی کاربر */
         #bench {
             position: absolute;
             bottom: 10vh; 
@@ -97,16 +133,15 @@
             border-top: 2px solid #734022;
             border-bottom: 8px solid #0a0402;
             box-shadow: 
-                0 30px 40px rgba(0,0,0,0.95), /* سایه عمیق زیر نیمکت */
-                inset 0 5px 15px rgba(255, 157, 0, 0.1); /* رفلکس ملایم نور شمع */
+                0 30px 40px rgba(0,0,0,0.95), 
+                inset 0 5px 15px rgba(255, 157, 0, 0.1); 
             z-index: 11;
         }
-        /* ========================================== */
 
         /* کیک سه‌بعدی با CSS */
         #cake {
             position: absolute; 
-            bottom: 15vh; /* قرارگیری دقیق روی نیمکت */
+            bottom: 15vh; 
             left: 50%; 
             transform: translateX(-50%);
             width: 140px; 
@@ -118,7 +153,6 @@
             box-shadow: 0 20px 30px rgba(0,0,0,0.9);
         }
 
-        /* سطح روی کیک (خامه) */
         #cake::before {
             content: '';
             position: absolute;
@@ -216,8 +250,10 @@
     <canvas id="starfield"></canvas>
 
     <div id="sea">
-        <div class="wave" style="left: 0; top: 20%;"></div>
-        <div class="wave" style="left: -50%; top: 50%; animation-duration: 15s;"></div>
+        <div class="wave wave1"></div>
+        <div class="wave wave2"></div>
+        <div class="wave wave3"></div>
+        <div class="sea-reflection"></div>
     </div>
 
     <div id="boat-container">
@@ -232,6 +268,7 @@
     </div>
 
     <audio id="music" src="music.m4a"></audio>
+    <audio id="sea-sound" src="sea.mp3" loop preload="auto"></audio>
 
     <script>
         // --- آسمان پرستاره ---
@@ -271,12 +308,13 @@
         }
         drawStars();
 
-        // --- میکروفون ---
+        // --- میکروفون و صدا ---
         const startBtn = document.getElementById('start-btn');
         const overlay = document.getElementById('overlay');
         const hint = document.getElementById('hint');
         const flame = document.getElementById('flame');
         const music = document.getElementById('music');
+        const seaSound = document.getElementById('sea-sound'); // اضافه شدن صدای دریا
         
         let audioContext, analyser, microphone;
         let isBlownOut = false;
@@ -285,6 +323,10 @@
             overlay.style.display = 'none';
             hint.style.display = 'block';
             
+            // پلی شدن صدای دریا به محض ورود
+            seaSound.volume = 0.4; // صدای ملایم برای اینکه مزاحم نباشه
+            seaSound.play().catch(e => console.log("مرورگر اجازه پخش نداد"));
+
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
