@@ -2,84 +2,75 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tangled Birthday ✨</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; }
+        body { margin: 0; overflow: hidden; background-color: #020205; }
         #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
-        #start-btn { background: rgba(255, 215, 0, 0.2); border: 1px solid #ffd700; color: #ffd700; padding: 20px 40px; font-size: 1.5rem; border-radius: 50px; cursor: pointer; display: none; }
-        #loader { color: #fff; font-size: 1.2rem; }
+        #start-btn { background: #ffd700; color: #000; padding: 20px 40px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 1.2rem; }
     </style>
     <script type="importmap">
       { "imports": { "three": "https://unpkg.com/three@0.150.1/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/" } }
     </script>
 </head>
 <body>
-
-    <div id="ui">
-        <div id="loader">در حال لود کردن جادو... ⏳</div>
-        <button id="start-btn">سوار قایق شو 🛶</button>
-    </div>
+    <div id="ui"><button id="start-btn">شروع تجربه راپونزل 🛶</button></div>
 
     <script type="module">
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-        let scene, camera, renderer;
+        let scene, camera, renderer, boat, cake;
         const bgMusic = new Audio('./music.m4a');
-        const startBtn = document.getElementById('start-btn');
-        const loaderDiv = document.getElementById('loader');
 
-        // تنظیمات صحنه
+        // ۱. صحنه
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x020205);
         camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 1.6, 0); // ارتفاع چشم انسان
+        camera.position.set(0, 1.5, 2); // دوربین داخل قایق
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        const light = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(light);
-        const pointLight = new THREE.PointLight(0xffaa00, 3);
-        pointLight.position.set(0, 1.5, -0.5); // نور روی کیک
-        scene.add(pointLight);
+        // ۲. نورپردازی (خیلی مهم برای اینکه سیاه نباشه)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffaa00, 1.5);
+        directionalLight.position.set(0, 5, 5);
+        scene.add(directionalLight);
 
-        // لودر مدیریت فایل‌ها
-        const manager = new THREE.LoadingManager();
-        manager.onLoad = () => {
-            loaderDiv.style.display = 'none';
-            startBtn.style.display = 'block';
-        };
+        // ۳. ساخت ستاره‌ها
+        const starGeo = new THREE.BufferGeometry();
+        const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
+        const starVertices = [];
+        for(let i=0; i<2000; i++) starVertices.push((Math.random()-0.5)*200, (Math.random()-0.5)*200, (Math.random()-0.5)*200);
+        starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+        scene.add(new THREE.Points(starGeo, starMat));
 
-        const loader = new GLTFLoader(manager);
-
-        // لود قایق
+        // ۴. لود مدل‌ها
+        const loader = new GLTFLoader();
+        
         loader.load('./boat.glb', (gltf) => {
-            const boat = gltf.scene;
-            boat.scale.set(0.02, 0.02, 0.02); // کوچک‌سازی قایق
-            boat.position.set(0, -1.0, 0); // قرارگیری زیر پای کاربر
+            boat = gltf.scene;
+            boat.scale.set(0.1, 0.1, 0.1); // مقیاس رو تست کن اگه بزرگ بود تغییرش بده
+            boat.position.set(0, -1, 0); 
             scene.add(boat);
         });
 
-        // لود کیک
         loader.load('./cake.glb', (gltf) => {
-            const cake = gltf.scene;
-            cake.scale.set(0.05, 0.05, 0.05); // کوچک‌سازی کیک
-            cake.position.set(0, 0.8, -0.8); // دقیقاً جلوی چشم کاربر
+            cake = gltf.scene;
+            cake.scale.set(0.05, 0.05, 0.05); // کیک رو کوچک کردیم
+            cake.position.set(0, 0.2, -0.5); // گذاشتیمش جلوی دوربین
             scene.add(cake);
         });
 
-        startBtn.addEventListener('click', () => {
+        document.getElementById('start-btn').addEventListener('click', () => {
             bgMusic.play();
             document.getElementById('ui').style.display = 'none';
         });
 
         function animate() {
             requestAnimationFrame(animate);
-            // لرزش خیلی ملایم قایق (حس آب)
-            camera.position.y = 1.6 + Math.sin(Date.now() * 0.001) * 0.02;
             renderer.render(scene, camera);
         }
         animate();
