@@ -41,80 +41,70 @@
         }
 
         /* ========================================== */
-        /* قایق جدید، فوق واقع‌گرایانه و سه‌بعدی */
+        /* قایق جدید با پرسپکتیو سه‌بعدی واقعی */
         /* ========================================== */
-        #boat {
-            position: absolute; 
-            bottom: -5vh; 
-            left: 50%; 
-            transform: translateX(-50%);
-            width: 140%; 
-            max-width: 1100px; 
-            height: 40vh; 
+        #boat-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50vh;
+            /* ایجاد زاویه دید اول شخص (دوربین) */
+            perspective: 800px; 
             z-index: 10;
-            
-            /* بافت تخته‌های چوبی قایق و سایه داخلی عمیق */
-            background: 
-                /* سایه تاریک برای ایجاد عمق */
-                linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.98) 100%),
-                /* انعکاس ملایم نور شمع روی کف قایق */
-                radial-gradient(ellipse at 50% 30%, rgba(255, 157, 0, 0.15) 0%, transparent 50%),
-                /* خطوط تخته‌های چوبی */
-                repeating-linear-gradient(
-                    85deg,
-                    #241208 0%, 
-                    #241208 5%,
-                    #120803 5.5%, 
-                    #120803 6%
-                );
-            
-            border-top-left-radius: 50% 100%;
-            border-top-right-radius: 50% 100%;
-            
-            /* لبه چوبی و برجسته بالایی قایق (عرشه) */
-            border-top: 24px solid #33190b;
-            
-            /* ایجاد حجم و حس سه‌بعدی با سایه‌های تو در تو */
-            box-shadow: 
-                inset 0 8px 0 #522d15, /* هایلایت روشن لبه داخلی */
-                inset 0 15px 25px rgba(0,0,0,0.9), /* سایه زیر لبه */
-                inset 0 50px 80px rgba(0,0,0,0.95), /* عمق تاریک داخل قایق */
-                0 -10px 25px rgba(0,0,0,0.7); /* سایه قایق روی آب */
+            display: flex;
+            justify-content: center;
         }
 
-        /* اضافه کردن نیمکت چوبی داخل قایق که کیک روش قرار می‌گیره */
-        #boat::before {
-            content: '';
+        #boat-hull {
             position: absolute;
-            bottom: 13vh; /* تنظیم دقیق ارتفاع تا فیکس بره زیر کیک */
-            left: 50%;
-            transform: translateX(-50%);
-            width: 65%;
-            max-width: 450px;
-            height: 45px;
-            /* بافت نیمکت */
+            bottom: -15vh;
+            width: 120vw;
+            max-width: 700px;
+            height: 120vh;
+            
+            /* بافت چوب با عمق تاریکی در جلوی قایق */
             background: 
-                linear-gradient(to bottom, rgba(255,255,255,0.08) 0%, transparent 100%),
-                repeating-linear-gradient(
-                    90deg,
-                    #33190b 0%,
-                    #33190b 8%,
-                    #210f06 8.5%,
-                    #210f06 9%
-                ); 
-            border-radius: 12px 12px 6px 6px;
-            /* سایه نیمکت روی کف قایق و رفلکس نور شمع */
+                linear-gradient(to top, rgba(0,0,0,0) 0%, rgba(0,0,0,0.98) 75%),
+                repeating-linear-gradient(90deg, #2c160b 0%, #2c160b 4%, #140904 4%, #140904 4.5%);
+                
+            /* جادوی چرخش سه‌بعدی برای خواباندن کف قایق روی آب */
+            transform: rotateX(70deg);
+            transform-origin: bottom center;
+            
+            /* شکل منحنی نوک قایق */
+            border-radius: 50% 50% 0 0 / 25% 25% 0 0;
+            
+            /* دیواره‌های قایق (ضخامت چوب) */
+            border-left: 35px solid #3d2011;
+            border-right: 35px solid #3d2011;
+            border-top: 15px solid #1a0c05;
+            
+            box-shadow: inset 0 0 80px 30px rgba(0,0,0,0.9);
+        }
+
+        /* نیمکت چوبی جلوی کاربر */
+        #bench {
+            position: absolute;
+            bottom: 10vh; 
+            width: 85vw;
+            max-width: 520px;
+            height: 55px;
+            background: linear-gradient(to bottom, #4a2815, #1f0f07);
+            border-radius: 8px;
+            border-top: 2px solid #734022;
+            border-bottom: 8px solid #0a0402;
             box-shadow: 
-                0 25px 40px rgba(0,0,0,0.95), 
-                inset 0 2px 3px rgba(255, 157, 0, 0.15), 
-                inset 0 -5px 15px rgba(0,0,0,0.6); 
+                0 30px 40px rgba(0,0,0,0.95), /* سایه عمیق زیر نیمکت */
+                inset 0 5px 15px rgba(255, 157, 0, 0.1); /* رفلکس ملایم نور شمع */
+            z-index: 11;
         }
         /* ========================================== */
 
         /* کیک سه‌بعدی با CSS */
         #cake {
             position: absolute; 
-            bottom: 12vh; 
+            bottom: 15vh; /* قرارگیری دقیق روی نیمکت */
             left: 50%; 
             transform: translateX(-50%);
             width: 140px; 
@@ -122,8 +112,8 @@
             background: linear-gradient(to right, #4a2c11, #7a461c, #4a2c11); 
             border-bottom-left-radius: 70px 20px; 
             border-bottom-right-radius: 70px 20px;
-            z-index: 11; 
-            box-shadow: 0 15px 30px rgba(0,0,0,0.9);
+            z-index: 12; 
+            box-shadow: 0 20px 30px rgba(0,0,0,0.9);
         }
 
         /* سطح روی کیک (خامه) */
@@ -150,7 +140,7 @@
             background: linear-gradient(to right, #f4e4c1, #fff, #d3c09b);
             border-radius: 3px; 
             box-shadow: inset 0 -5px 10px rgba(0,0,0,0.2), 0 5px 15px rgba(0,0,0,0.4);
-            z-index: 12;
+            z-index: 13;
         }
 
         #flame {
@@ -228,7 +218,10 @@
         <div class="wave" style="left: -50%; top: 50%; animation-duration: 15s;"></div>
     </div>
 
-    <div id="boat"></div>
+    <div id="boat-container">
+        <div id="boat-hull"></div>
+        <div id="bench"></div>
+    </div>
     
     <div id="cake">
         <div id="candle">
