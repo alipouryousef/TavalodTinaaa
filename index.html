@@ -2,80 +2,244 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>آرزوی تو - علی</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تولدت مبارک - راپونزل</title>
     <style>
-        body { margin: 0; background: #0b0e14; overflow: hidden; color: white; font-family: sans-serif; text-align: center; }
-        #scene { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
-        
-        /* کیک و شمع */
-        .cake { font-size: 100px; margin-bottom: 50px; }
-        .flame { color: orange; animation: flicker 0.5s infinite alternate; }
-        .flame.off { display: none; }
-
-        /* فانوس‌ها */
-        .lantern { position: absolute; width: 30px; height: 30px; background: gold; border-radius: 50%; opacity: 0; }
-        @keyframes float { 
-            0% { bottom: 100px; opacity: 1; }
-            100% { bottom: 100vh; opacity: 0; }
+        /* استایل‌های پایه و آسمان شب */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #060b14; /* رنگ آسمان تاریک */
+            overflow: hidden;
+            font-family: Tahoma, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        #startBtn { padding: 15px 30px; font-size: 20px; cursor: pointer; border-radius: 20px; border: none; background: gold; }
-        @keyframes flicker { from { transform: scale(1); } to { transform: scale(1.2); } }
+        #sky {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* دکمه شروع برای گرفتن دسترسی‌ها */
+        #start-screen {
+            position: absolute;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #start-btn {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background-color: #e5b05c;
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 0 15px #e5b05c;
+            transition: 0.3s;
+        }
+
+        #start-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* قایق از زاویه اول شخص (پایین صفحه) */
+        #boat-view {
+            position: absolute;
+            bottom: -50px;
+            width: 120%;
+            height: 300px;
+            background: radial-gradient(ellipse at top, #4a2e15 0%, #1a1005 100%);
+            border-top-left-radius: 50%;
+            border-top-right-radius: 50%;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            box-shadow: inset 0 20px 50px rgba(0,0,0,0.8);
+        }
+
+        /* کیک و شمع */
+        #cake-container {
+            position: relative;
+            margin-top: 20px;
+            font-size: 100px; /* سایز ایموجی کیک */
+        }
+
+        #candle {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 40px;
+            background: linear-gradient(to bottom, #fff, #f0e6d2);
+            border-radius: 3px;
+        }
+
+        #flame {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 15px;
+            height: 25px;
+            background: #ff9d00;
+            border-radius: 50% 50% 20% 20%;
+            box-shadow: 0 0 20px #ff9d00, 0 0 40px #ff9d00;
+            animation: flicker 0.2s infinite alternate;
+            transition: opacity 0.5s;
+        }
+
+        @keyframes flicker {
+            0% { transform: translateX(-50%) scale(1); opacity: 0.9; }
+            100% { transform: translateX(-50%) scale(1.1); opacity: 1; }
+        }
+
+        /* استایل فانوس‌ها */
+        .lantern {
+            position: absolute;
+            bottom: -50px;
+            font-size: 30px;
+            filter: drop-shadow(0 0 15px rgba(255, 180, 50, 0.8));
+            animation: floatUp linear forwards;
+            z-index: 5;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateY(-120vh) rotate(20deg); opacity: 0; }
+        }
     </style>
 </head>
 <body>
 
-    <div id="scene">
-        <button id="startBtn">شروع کن و شمع رو فوت کن! 🎂</button>
-        <div class="cake">
-            🍰<span id="flame" class="flame">🔥</span>
+    <div id="start-screen">
+        <h2 style="color: white; margin-bottom: 20px;">آماده‌ی یک سوپرایز هستی؟</h2>
+        <button id="start-btn">سوار قایق شو 🛶</button>
+    </div>
+
+    <div id="sky"></div>
+
+    <div id="boat-view">
+        <div id="cake-container">
+            🎂
+            <div id="candle">
+                <div id="flame"></div>
+            </div>
         </div>
     </div>
 
-    <audio id="audio" src="music.m4a" loop></audio>
+    <audio id="bg-music" src="music.m4a"></audio>
 
     <script>
-        const btn = document.getElementById('startBtn');
+        const startBtn = document.getElementById('start-btn');
+        const startScreen = document.getElementById('start-screen');
         const flame = document.getElementById('flame');
-        const audio = document.getElementById('audio');
+        const music = document.getElementById('bg-music');
+        const sky = document.getElementById('sky');
+        
+        let audioContext;
+        let analyser;
+        let microphone;
+        let isBlownOut = false;
 
-        btn.addEventListener('click', async () => {
-            btn.style.display = 'none';
-            audio.play();
-
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const analyser = audioContext.createAnalyser();
-            const source = audioContext.createMediaStreamSource(stream);
-            source.connect(analyser);
-            analyser.fftSize = 256;
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-
-            function checkBlow() {
-                analyser.getByteFrequencyData(dataArray);
-                let sum = 0;
-                for(let i = 0; i < bufferLength; i++) sum += dataArray[i];
-                let average = sum / bufferLength;
-
-                if (average > 30) { // حسسیت میکروفون
-                    flame.classList.add('off');
-                    createLanterns();
-                }
-                requestAnimationFrame(checkBlow);
+        // مرحله اول: گرفتن دسترسی میکروفون با کلیک کاربر
+        startBtn.addEventListener('click', async () => {
+            startScreen.style.display = 'none';
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                
+                microphone.connect(analyser);
+                analyser.fftSize = 256;
+                
+                // شروع گوش دادن به صدای محیط
+                detectBlow();
+            } catch (err) {
+                alert("برای فوت کردن شمع، باید دسترسی میکروفون رو به مرورگر بدی!");
             }
-            checkBlow();
         });
 
-        function createLanterns() {
-            for(let i = 0; i < 10; i++) {
-                let l = document.createElement('div');
-                l.className = 'lantern';
-                l.style.left = Math.random() * 100 + 'vw';
-                l.style.animation = `float 5s linear forwards`;
-                document.body.appendChild(l);
-                setTimeout(() => l.remove(), 5000);
+        // مرحله دوم: تشخیص صدای فوت کردن
+        function detectBlow() {
+            if (isBlownOut) return;
+
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteFrequencyData(dataArray);
+
+            // محاسبه میانگین صدا (ولوم)
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) {
+                sum += dataArray[i];
             }
+            let averageVolume = sum / bufferLength;
+
+            // اگه ولوم از یه حدی بالاتر رفت (یعنی کاربر فوت کرد)
+            // نکته: عدد 80 حساسیت رو نشون میده. اگه دیدی سخت فوت میشه، عددش رو کمتر کن (مثلا 60)
+            if (averageVolume > 80) {
+                triggerMagic();
+            } else {
+                requestAnimationFrame(detectBlow);
+            }
+        }
+
+        // مرحله سوم: اتفاقات جادویی!
+        function triggerMagic() {
+            isBlownOut = true; // جلوگیری از تکرار
+            
+            // خاموش شدن شمع
+            flame.style.opacity = '0';
+            
+            // پخش موزیک
+            music.play();
+            
+            // ساخت فانوس‌ها به صورت مداوم
+            setInterval(createLantern, 300);
+        }
+
+        // تابع ساخت فانوس تو آسمون
+        function createLantern() {
+            const lantern = document.createElement('div');
+            lantern.classList.add('lantern');
+            lantern.innerText = '🏮'; // میتونی به جاش از تگ img استفاده کنی
+            
+            // موقعیت افقی تصادفی
+            lantern.style.left = Math.random() * 100 + 'vw';
+            
+            // سایز تصادفی برای ایجاد عمق
+            const size = Math.random() * 20 + 20; 
+            lantern.style.fontSize = size + 'px';
+            
+            // سرعت حرکت تصادفی (بین 5 تا 12 ثانیه)
+            const duration = Math.random() * 7 + 5; 
+            lantern.style.animationDuration = duration + 's';
+            
+            sky.appendChild(lantern);
+            
+            // حذف فانوس از رم (DOM) بعد از پایان انیمیشن
+            setTimeout(() => {
+                lantern.remove();
+            }, duration * 1000);
         }
     </script>
 </body>
