@@ -2,79 +2,87 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Happy Birthday ❤️</title>
 
 <style>
 html,body{
-    margin:0;
-    overflow:hidden;
-    background:black;
-    width:100%;
-    height:100%;
-    font-family:sans-serif;
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#000;
+  font-family:Arial,sans-serif;
 }
 
 canvas{
-    display:block;
+  display:block;
 }
 
 #overlay{
-    position:fixed;
-    inset:0;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    background:black;
-    color:white;
-    z-index:100;
+  position:fixed;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  background:black;
+  color:white;
+  z-index:100;
 }
 
 button{
-    padding:15px 35px;
-    border:none;
-    border-radius:30px;
-    font-size:20px;
-    cursor:pointer;
+  padding:15px 35px;
+  border:none;
+  border-radius:30px;
+  font-size:20px;
+  cursor:pointer;
 }
 
 #wishBtn{
-    position:fixed;
-    bottom:40px;
-    left:50%;
-    transform:translateX(-50%);
-    z-index:50;
-    display:none;
+  position:fixed;
+  bottom:40px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:50;
+  display:none;
 }
 </style>
 </head>
+
 <body>
 
 <div id="overlay">
-    <h1>✨ A Special Night Awaits ✨</h1>
-    <button id="startBtn">Start</button>
+  <h1>✨ A Special Night Awaits ✨</h1>
+  <button id="startBtn">Start</button>
 </div>
 
 <button id="wishBtn">Make a Wish ✨</button>
 
 <script type="module">
 
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.168/build/three.module.js";
-import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.168/examples/jsm/loaders/GLTFLoader.js";
+import * as THREE from "https://unpkg.com/three@0.168.0/build/three.module.js";
+import { GLTFLoader }
+from "https://unpkg.com/three@0.168.0/examples/jsm/loaders/GLTFLoader.js";
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x02040f);
+const overlay=document.getElementById("overlay");
+const startBtn=document.getElementById("startBtn");
+const wishBtn=document.getElementById("wishBtn");
 
-const camera = new THREE.PerspectiveCamera(
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x030712);
+
+const camera=new THREE.PerspectiveCamera(
 75,
 window.innerWidth/window.innerHeight,
 0.1,
 1000
 );
 
-const renderer = new THREE.WebGLRenderer({
-    antialias:true
+camera.position.set(0,1.5,3);
+
+const renderer=new THREE.WebGLRenderer({
+  antialias:true
 });
 
 renderer.setSize(
@@ -86,16 +94,14 @@ document.body.appendChild(
 renderer.domElement
 );
 
-camera.position.set(0,1.5,3);
-
 scene.add(
 new THREE.AmbientLight(
-0x8899ff,
+0xffffff,
 1.5
 )
 );
 
-const moon = new THREE.DirectionalLight(
+const moon=new THREE.DirectionalLight(
 0xffffff,
 2
 );
@@ -109,44 +115,46 @@ moon.position.set(
 scene.add(moon);
 
 
+
 // STARS
 
-const starsGeometry =
+const starGeometry =
 new THREE.BufferGeometry();
 
-const stars = [];
+const starVertices=[];
 
 for(let i=0;i<5000;i++){
 
-    stars.push(
-        (Math.random()-0.5)*500,
-        Math.random()*250,
-        (Math.random()-0.5)*500
-    );
+  starVertices.push(
+    (Math.random()-0.5)*500,
+    Math.random()*200,
+    (Math.random()-0.5)*500
+  );
 
 }
 
-starsGeometry.setAttribute(
+starGeometry.setAttribute(
 'position',
 new THREE.Float32BufferAttribute(
-stars,
+starVertices,
 3
 )
 );
 
-const starsMaterial =
+const starMaterial =
 new THREE.PointsMaterial({
-    color:0xffffff,
-    size:0.5
+  color:0xffffff,
+  size:0.5
 });
 
-const starField =
+const stars =
 new THREE.Points(
-starsGeometry,
-starsMaterial
+starGeometry,
+starMaterial
 );
 
-scene.add(starField);
+scene.add(stars);
+
 
 
 // MODELS
@@ -156,34 +164,59 @@ new GLTFLoader();
 
 loader.load(
 './boat.glb',
+
 (gltf)=>{
-    scene.add(
-        gltf.scene
-    );
+  scene.add(
+    gltf.scene
+  );
+},
+
+undefined,
+
+(err)=>{
+  console.log(
+    'boat error',
+    err
+  );
 }
 );
+
 
 loader.load(
 './cake.glb',
+
 (gltf)=>{
-    const cake =
-    gltf.scene;
 
-    cake.position.set(
-        0,
-        1,
-        -1.5
-    );
+  const cake =
+  gltf.scene;
 
-    cake.scale.set(
-        0.6,
-        0.6,
-        0.6
-    );
+  cake.position.set(
+    0,
+    1,
+    -1.5
+  );
 
-    scene.add(cake);
+  cake.scale.set(
+    0.6,
+    0.6,
+    0.6
+  );
+
+  scene.add(
+    cake
+  );
+},
+
+undefined,
+
+(err)=>{
+  console.log(
+    'cake error',
+    err
+  );
 }
 );
+
 
 
 // MUSIC
@@ -193,124 +226,122 @@ new Audio(
 './music.m4a'
 );
 
-music.loop = true;
+music.loop=true;
+
 
 
 // LANTERNS
 
-const lanterns = [];
+const lanterns=[];
 
 function releaseLanterns(){
 
-    for(let i=0;i<200;i++){
+  for(let i=0;i<200;i++){
 
-        const geometry =
-        new THREE.SphereGeometry(
-            0.12,
-            8,
-            8
-        );
+    const geometry =
+    new THREE.SphereGeometry(
+      0.15,
+      8,
+      8
+    );
 
-        const material =
-        new THREE.MeshBasicMaterial({
-            color:0xffc94d
-        });
+    const material =
+    new THREE.MeshBasicMaterial({
+      color:0xffc94d
+    });
 
-        const lantern =
-        new THREE.Mesh(
-            geometry,
-            material
-        );
+    const lantern =
+    new THREE.Mesh(
+      geometry,
+      material
+    );
 
-        lantern.position.set(
-            (Math.random()-0.5)*20,
-            Math.random()*2,
-            -5-Math.random()*20
-        );
+    lantern.position.set(
+      (Math.random()-0.5)*20,
+      Math.random()*2,
+      -5-Math.random()*20
+    );
 
-        lantern.speed =
-        0.01+
-        Math.random()*0.03;
+    lantern.speed=
+      0.01+
+      Math.random()*0.03;
 
-        scene.add(
-            lantern
-        );
+    scene.add(
+      lantern
+    );
 
-        lanterns.push(
-            lantern
-        );
-    }
+    lanterns.push(
+      lantern
+    );
+  }
 }
 
 
-// START
 
-const overlay =
-document.getElementById(
-'overlay'
+// BUTTONS
+
+startBtn.addEventListener(
+'click',
+()=>{
+
+  overlay.style.display='none';
+  wishBtn.style.display='block';
+
+  music.play()
+  .catch(()=>{
+    console.log(
+      'music blocked'
+    );
+  });
+
+}
 );
 
-const startBtn =
-document.getElementById(
-'startBtn'
+
+wishBtn.addEventListener(
+'click',
+()=>{
+
+  wishBtn.innerText =
+  'Happy Birthday ❤️';
+
+  releaseLanterns();
+
+}
 );
 
-const wishBtn =
-document.getElementById(
-'wishBtn'
-);
-
-startBtn.onclick = ()=>{
-
-    overlay.style.display =
-    'none';
-
-    wishBtn.style.display =
-    'block';
-
-    music.play();
-};
-
-
-wishBtn.onclick = ()=>{
-
-    wishBtn.innerText =
-    'Happy Birthday ❤️';
-
-    releaseLanterns();
-};
 
 
 // ANIMATION
 
 function animate(time){
 
-    requestAnimationFrame(
-        animate
-    );
+  requestAnimationFrame(
+    animate
+  );
 
-    camera.position.y =
+  camera.position.y =
     1.5+
     Math.sin(
-        time*0.001
+      time*0.001
     )*0.03;
 
-    camera.rotation.z =
+  camera.rotation.z =
     Math.sin(
-        time*0.001
+      time*0.001
     )*0.01;
 
-    lanterns.forEach(
-        l=>{
-            l.position.y +=
-            l.speed;
-        }
-    );
+  lanterns.forEach(
+    l=>{
+      l.position.y +=
+      l.speed;
+    }
+  );
 
-    renderer.render(
-        scene,
-        camera
-    );
+  renderer.render(
+    scene,
+    camera
+  );
 }
 
 animate();
@@ -319,18 +350,18 @@ window.addEventListener(
 'resize',
 ()=>{
 
-    camera.aspect =
+  camera.aspect =
     window.innerWidth/
     window.innerHeight;
 
-    camera.updateProjectionMatrix();
+  camera.updateProjectionMatrix();
 
-    renderer.setSize(
-        window.innerWidth,
-        window.innerHeight
-    );
-}
-);
+  renderer.setSize(
+    window.innerWidth,
+    window.innerHeight
+  );
+
+});
 
 </script>
 
