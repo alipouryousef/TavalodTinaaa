@@ -8,7 +8,7 @@
         /* تنظیمات پایه */
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            background: #020111; /* رنگ تاریک آسمان شب */
+            background: #020111;
             overflow: hidden; font-family: Tahoma, sans-serif;
         }
 
@@ -68,7 +68,7 @@
             width: 18px; height: 32px; background: #ff9d00;
             border-radius: 50% 50% 20% 20%;
             box-shadow: 0 0 20px 5px #ff9d00, 0 0 50px 15px #ff6600, 0 0 100px 30px #ffaa00;
-            animation: flicker 0.15s infinite alternate; transition: opacity 0.3s ease;
+            animation: flicker 0.15s infinite alternate;
         }
 
         @keyframes flicker {
@@ -86,7 +86,6 @@
             bottom: -50px; opacity: 0;
         }
 
-        /* افکت آتش زیر فانوس */
         .lantern::after {
             content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
             width: 10px; height: 10px; background: #ff5722;
@@ -150,14 +149,14 @@
     <audio id="music" src="music.m4a"></audio>
 
     <script>
-        // --- بخش 1: ساخت آسمان پرستاره با Canvas ---
+        // --- آسمان پرستاره ---
         const canvas = document.getElementById('starfield');
         const ctx = canvas.getContext('2d');
         let stars = [];
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight * 0.6; // 60% بالای صفحه
+            canvas.height = window.innerHeight * 0.6;
         }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
@@ -180,7 +179,6 @@
                 ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
                 ctx.fill();
                 
-                // چشمک زدن ستاره‌ها
                 star.alpha += star.speed;
                 if (star.alpha > 1 || star.alpha < 0) star.speed = -star.speed;
             });
@@ -188,7 +186,7 @@
         }
         drawStars();
 
-        // --- بخش 2: منطق میکروفون و فوت کردن ---
+        // --- میکروفون ---
         const startBtn = document.getElementById('start-btn');
         const overlay = document.getElementById('overlay');
         const hint = document.getElementById('hint');
@@ -229,7 +227,6 @@
             }
             let volume = sum / bufferLength;
 
-            // عدد حساسیت رو به شدت پایین آوردم (35) که با یه فوت ساده خاموش بشه
             if (volume > 35) {
                 triggerRapunzelMagic();
             } else {
@@ -237,39 +234,55 @@
             }
         }
 
-        // --- بخش 3: اتفاقات جادویی ---
+        // --- اتفاقات جادویی ---
         function triggerRapunzelMagic() {
             isBlownOut = true;
             hint.style.display = 'none';
             
-            // خاموش شدن شمع با انیمیشن دود شدن
-            flame.style.transform = 'scale(0)';
-            flame.style.opacity = '0';
+            // ✨ فیکس باگ: متوقف کردن کامل انیمیشن و حذف شعله
+            flame.style.animation = 'none'; 
+            flame.style.display = 'none';
             
+            // ✨ افکت جدید: ایجاد دود بعد از خاموش شدن شمع
+            const candle = document.getElementById('candle');
+            const smoke = document.createElement('div');
+            smoke.style.position = 'absolute';
+            smoke.style.top = '-28px';
+            smoke.style.left = '50%';
+            smoke.style.transform = 'translateX(-50%)';
+            smoke.style.width = '15px';
+            smoke.style.height = '15px';
+            smoke.style.background = 'rgba(200, 200, 200, 0.6)'; // رنگ دود
+            smoke.style.borderRadius = '50%';
+            smoke.style.filter = 'blur(3px)'; // محو بودن دود
+            smoke.style.transition = 'all 1.5s ease-out';
+            candle.appendChild(smoke);
+
+            // حرکت دادن دود به سمت بالا و محو شدنش
+            setTimeout(() => {
+                smoke.style.top = '-80px';
+                smoke.style.opacity = '0';
+                smoke.style.transform = 'translateX(-50%) scale(3)';
+            }, 50);
+            
+            // پخش موزیک و ساخت فانوس‌ها
             music.play();
-            
-            // ساخت فانوس‌های جادویی
-            setInterval(spawnLantern, 200); // هر 200 میلی‌ثانیه یک فانوس
+            setInterval(spawnLantern, 200); 
         }
 
         function spawnLantern() {
             const lantern = document.createElement('div');
             lantern.classList.add('lantern');
             
-            // موقعیت افقی رندوم
             lantern.style.left = Math.random() * 95 + 'vw';
-            
-            // سایز رندوم برای ایجاد حس عمق
             const scale = Math.random() * 0.8 + 0.4;
             lantern.style.transform = `scale(${scale})`;
             
-            // سرعت حرکت رندوم بین 10 تا 20 ثانیه
             const duration = Math.random() * 10 + 10;
             lantern.style.animationDuration = duration + 's';
             
             document.body.appendChild(lantern);
             
-            // پاکسازی رم بعد از خروج فانوس از صفحه
             setTimeout(() => {
                 lantern.remove();
             }, duration * 1000);
