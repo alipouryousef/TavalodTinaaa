@@ -1,1 +1,262 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>جادوی نوری تینا ✨</title>
+    <style>
+        /* فونت‌های خفن برای متن‌های ذرات */
+        @import url('https://fonts.googleapis.com/css2?family=Lalezar&family=Montserrat:wght@800&display=swap');
+        
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #030305; /* پس‌زمینه بی‌نهایت تاریک */
+            overflow: hidden; user-select: none;
+            touch-action: none; /* جلوگیری از اسکرول شدن تو گوشی */
+        }
+        canvas {
+            display: block;
+            width: 100%; height: 100%;
+        }
+        #ui {
+            position: absolute; bottom: 8%; left: 50%;
+            transform: translateX(-50%);
+            text-align: center; color: #ffd700;
+            font-family: Tahoma, sans-serif;
+            font-size: 1.1rem; pointer-events: none;
+            animation: pulse 2s infinite;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+            white-space: nowrap;
+            z-index: 10;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; transform: translateX(-50%) scale(0.95); }
+            50% { opacity: 1; transform: translateX(-50%) scale(1.05); }
+        }
+        #loading {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff7eb3; font-family: Tahoma, sans-serif;
+            font-size: 1.2rem; transition: opacity 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">در حال پردازش جادو... ✨</div>
+    <div id="ui">👇 برای تغییر شکل، روی صفحه ضربه بزن 👇</div>
+    <canvas id="canvas"></canvas>
 
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        
+        let width, height;
+        let particles = [];
+        // پالت رنگی لوکس و درخشان
+        const colors = ['#ffd700', '#ffb6c1', '#ff1493', '#ff8c00', '#00ffff', '#ff7eb3'];
+        // تعداد ذرات بر اساس قدرت گوشی/سیستم
+        let NUM_PARTICLES = window.innerWidth < 600 ? 1800 : 3500;
+        
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // متغیر برای تعامل با انگشت/موس
+        let mouse = { x: -1000, y: -1000, radius: 100 };
+        
+        window.addEventListener('mousemove', e => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+        window.addEventListener('touchmove', e => {
+            mouse.x = e.touches[0].clientX;
+            mouse.y = e.touches[0].clientY;
+        });
+        window.addEventListener('touchend', () => {
+            mouse.x = -1000; mouse.y = -1000;
+        });
+        window.addEventListener('mouseout', () => {
+            mouse.x = -1000; mouse.y = -1000;
+        });
+
+        // کلاس ذرات نوری
+        class Particle {
+            constructor() {
+                this.x = width / 2 + (Math.random() - 0.5) * 100;
+                this.y = height / 2 + (Math.random() - 0.5) * 100;
+                this.targetX = this.x;
+                this.targetY = this.y;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.size = Math.random() * 2 + 1.2;
+                this.vx = 0;
+                this.vy = 0;
+                this.friction = 0.88;
+                this.ease = Math.random() * 0.04 + 0.02; // سرعت نرم و ارگانیک
+            }
+            update() {
+                let dx = this.targetX - this.x;
+                let dy = this.targetY - this.y;
+                
+                // دور شدن ذرات وقتی دست روی صفحه کشیده میشه
+                let mdx = mouse.x - this.x;
+                let mdy = mouse.y - this.y;
+                let mDist = Math.sqrt(mdx*mdx + mdy*mdy);
+                
+                if (mDist < mouse.radius) {
+                    let force = (mouse.radius - mDist) / mouse.radius;
+                    let angle = Math.atan2(mdy, mdx);
+                    this.vx -= Math.cos(angle) * force * 5;
+                    this.vy -= Math.sin(angle) * force * 5;
+                }
+                
+                // حرکت به سمت هدف
+                this.vx += dx * this.ease;
+                this.vy += dy * this.ease;
+                
+                this.vx *= this.friction;
+                this.vy *= this.friction;
+                
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // تابع ساختن فرم نیلوفر ۱۲ پر باستانی
+        function getLotusPoints(num) {
+            const points = [];
+            const cx = width / 2;
+            const cy = height / 2 - 30; 
+            const maxR = Math.min(width, height) * 0.35;
+            
+            for (let i = 0; i < num; i++) {
+                const t = Math.random() * Math.PI * 2;
+                // فرمول ریاضی نیلوفر ۱۲ پر
+                const petalFactor = Math.abs(Math.cos(6 * t)); 
+                const r = maxR * petalFactor * (0.3 + 0.7 * Math.sqrt(Math.random()));
+                
+                points.push({
+                    x: cx + r * Math.cos(t),
+                    y: cy + r * Math.sin(t)
+                });
+            }
+            return points;
+        }
+
+        // تابع تبدیل متن به مختصات ذرات
+        function getTextPoints(text, fontStr) {
+            const offCanvas = document.createElement('canvas');
+            const oCtx = offCanvas.getContext('2d', { willReadFrequently: true });
+            offCanvas.width = width;
+            offCanvas.height = height;
+            
+            oCtx.fillStyle = 'white';
+            oCtx.font = fontStr;
+            oCtx.textAlign = 'center';
+            oCtx.textBaseline = 'middle';
+            oCtx.fillText(text, width/2, height/2 - 30);
+            
+            const data = oCtx.getImageData(0, 0, width, height).data;
+            const points = [];
+            const gap = width < 600 ? 5 : 6;
+            
+            for (let y = 0; y < height; y += gap) {
+                for (let x = 0; x < width; x += gap) {
+                    const idx = (y * width + x) * 4;
+                    if (data[idx + 3] > 150) {
+                        points.push({x, y});
+                    }
+                }
+            }
+            return points;
+        }
+
+        let currentShape = 0;
+
+        // تغییر فرم ذرات بر اساس کلیک
+        function changeShape(index) {
+            let points = [];
+            const fontSizeEn = Math.min(width * 0.22, 160);
+            const fontSizeFa = Math.min(width * 0.16, 130);
+
+            if (index === 0) {
+                points = getLotusPoints(NUM_PARTICLES);
+            } else if (index === 1) {
+                points = getTextPoints("T I N A", `bold ${fontSizeEn}px Montserrat`);
+            } else if (index === 2) {
+                points = getTextPoints("HAPPY", `bold ${fontSizeEn * 0.7}px Montserrat`);
+            } else if (index === 3) {
+                points = getTextPoints("BIRTHDAY", `bold ${fontSizeEn * 0.55}px Montserrat`);
+            } else if (index === 4) {
+                points = getTextPoints("تولدت مبارک", `${fontSizeFa}px Lalezar`);
+            }
+
+            if (points.length === 0) points = getLotusPoints(NUM_PARTICLES);
+
+            // بُر زدن آرایه برای انیمیشن نامنظم و قشنگ‌تر
+            points.sort(() => Math.random() - 0.5);
+
+            for (let i = 0; i < NUM_PARTICLES; i++) {
+                const pt = points[i % points.length];
+                particles[i].targetX = pt.x;
+                particles[i].targetY = pt.y;
+                particles[i].color = colors[Math.floor(Math.random() * colors.length)];
+            }
+        }
+
+        function init() {
+            for (let i = 0; i < NUM_PARTICLES; i++) {
+                particles.push(new Particle());
+            }
+            changeShape(0);
+            document.getElementById('loading').style.opacity = 0;
+            setTimeout(() => document.getElementById('loading').remove(), 500);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // افکت دنباله‌دار (Trail effect) برای ذرات
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = 'rgba(3, 3, 5, 0.25)';
+            ctx.fillRect(0, 0, width, height);
+            
+            // ترکیب نورها برای درخشندگی
+            ctx.globalCompositeOperation = 'lighter';
+            for (let i = 0; i < NUM_PARTICLES; i++) {
+                particles[i].update();
+                particles[i].draw();
+            }
+        }
+
+        // عوض شدن فرم با ضربه زدن
+        window.addEventListener('click', () => {
+            currentShape = (currentShape + 1) % 5;
+            changeShape(currentShape);
+        });
+        
+        window.addEventListener('touchstart', (e) => {
+            mouse.x = e.touches[0].clientX;
+            mouse.y = e.touches[0].clientY;
+            currentShape = (currentShape + 1) % 5;
+            changeShape(currentShape);
+        }, {passive: false});
+
+        // صبر کردن تا لود شدن فونت‌ها
+        document.fonts.ready.then(() => {
+            init();
+            animate();
+        });
+    </script>
+</body>
+</html>
