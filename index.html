@@ -2,199 +2,177 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🛶 I See The Light ✨</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>✨ I See The Light ✨</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@400;700&display=swap');
         
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; background-color: #000;
-            font-family: 'Vazirmatn', sans-serif;
-        }
-
-        #webgl-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Vazirmatn', sans-serif; user-select: none; }
+        
         #ui-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 10; background: rgba(0, 0, 5, 0.85); transition: opacity 1.5s;
+            z-index: 10; pointer-events: none; transition: opacity 1s;
         }
 
         #start-btn {
-            background: rgba(255, 170, 0, 0.15); border: 1px solid rgba(255, 170, 0, 0.5);
-            color: #ffd700; padding: 15px 40px; font-size: 1.2rem;
+            pointer-events: auto; background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.5); color: #ffd700;
+            padding: 15px 40px; font-size: 1.5rem; font-family: 'Lalezar', cursive;
             border-radius: 50px; cursor: pointer; backdrop-filter: blur(5px);
-            transition: all 0.3s; font-family: 'Vazirmatn', sans-serif;
-            box-shadow: 0 0 20px rgba(255, 170, 0, 0.2);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); transition: all 0.3s;
         }
 
-        #start-btn:hover { transform: scale(1.05); background: rgba(255, 170, 0, 0.25); }
+        #start-btn:hover { background: rgba(255, 215, 0, 0.3); transform: scale(1.05); }
 
         #instruction {
-            position: absolute; top: 20%; color: rgba(255, 215, 0, 0.8);
-            font-size: 1.2rem; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-            opacity: 0; transition: opacity 1s; pointer-events: none;
+            color: rgba(255, 215, 0, 0.9); font-size: 1.5rem; font-family: 'Lalezar', cursive;
+            margin-top: 20px; text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+            display: none; animation: pulse 2s infinite;
         }
+
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+        
+        #loading { position: absolute; bottom: 20px; color: white; font-size: 1rem; }
     </style>
+
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
+        }
+      }
+    </script>
 </head>
 <body>
+
     <div id="ui-layer">
-        <button id="start-btn">سوار قایق شو... 🛶</button>
+        <button id="start-btn">سوار قایق شو 🛶</button>
+        <div id="instruction">یه آرزو کن و شمع رو فوت کن... 🌬️</div>
+        <div id="loading">در حال آماده‌سازی جادو... ✨</div>
     </div>
-    <div id="instruction">شمع رو فوت کن تا رویاها پرواز کنن 🌬️</div>
-    <div id="webgl-container"></div>
-    
-    <!-- حتماً یه فایل آهنگ به اسم music.mp3 تو گیت‌هابت بذار -->
-    <audio id="bg-music" src="music.mp3" preload="auto"></audio>
 
-    <script>
-        // ==========================================
-        // 1. تنظیمات پایه Three.js
-        // ==========================================
-        const container = document.getElementById('webgl-container');
-        const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x020208, 0.002); // مه غلیظ شبانه روی آب
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
-        // زاویه دید اول شخص تو قایق
-        camera.position.set(0, 5, 10); 
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        container.appendChild(renderer.domElement);
-
-        // ==========================================
-        // 2. ساخت محیط (آب، ستاره‌ها، قایق و کیک) با کد خالص
-        // ==========================================
-        
-        // نور محیطی تاریک
-        const ambientLight = new THREE.AmbientLight(0x111122, 1);
-        scene.add(ambientLight);
-
-        // --- دریاچه (Water) ---
-        const waterGeometry = new THREE.PlaneGeometry(1000, 1000, 50, 50);
-        const waterMaterial = new THREE.MeshPhongMaterial({
-            color: 0x050510, flatShading: true, shininess: 100, transparent: true, opacity: 0.9
-        });
-        const water = new THREE.Mesh(waterGeometry, waterMaterial);
-        water.rotation.x = -Math.PI / 2;
-        scene.add(water);
-
-        // --- ستاره‌های آسمون ---
-        const starsGeo = new THREE.BufferGeometry();
-        const starsCount = 2000;
-        const posArray = new Float32Array(starsCount * 3);
-        for(let i = 0; i < starsCount * 3; i++) {
-            posArray[i] = (Math.random() - 0.5) * 1000;
-            // ستاره‌ها رو میبریم بالا تو آسمون
-            if(i % 3 === 1) posArray[i] = Math.random() * 400 + 50; 
-        }
-        starsGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-        const starsMat = new THREE.PointsMaterial({ size: 1.5, color: 0xffffff, transparent: true, opacity: 0.8 });
-        const stars = new THREE.Points(starsGeo, starsMat);
-        scene.add(stars);
-
-        // --- قایق (ساخت با اشکال هندسی) ---
-        const boatGroup = new THREE.Group();
-        const woodMaterial = new THREE.MeshPhongMaterial({ color: 0x3d2314 });
-        
-        // بدنه اصلی قایق جلوی دوربین
-        const bowGeo = new THREE.CylinderGeometry(0.1, 4, 15, 3, 1, false, 0, Math.PI);
-        const bow = new THREE.Mesh(bowGeo, woodMaterial);
-        bow.rotation.x = Math.PI / 2;
-        bow.rotation.z = Math.PI / 2;
-        bow.position.set(0, 1, -5);
-        boatGroup.add(bow);
-        
-        // تخته‌ای که کیک روش قرار میگیره
-        const plankGeo = new THREE.BoxGeometry(4, 0.2, 1.5);
-        const plank = new THREE.Mesh(plankGeo, woodMaterial);
-        plank.position.set(0, 3, 3);
-        boatGroup.add(plank);
-
-        scene.add(boatGroup);
-
-        // --- کیک و شمع ---
-        const cakeGroup = new THREE.Group();
-        
-        // کیک
-        const cakeGeo = new THREE.CylinderGeometry(1.2, 1.2, 1, 32);
-        const cakeMat = new THREE.MeshPhongMaterial({ color: 0xffb6c1 }); // صورتی پاستلی
-        const cakeMesh = new THREE.Mesh(cakeGeo, cakeMat);
-        cakeMesh.position.y = 3.6;
-        cakeGroup.add(cakeMesh);
-
-        // شمع
-        const candleGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.6);
-        const candleMat = new THREE.MeshPhongMaterial({ color: 0xffffff });
-        const candleMesh = new THREE.Mesh(candleGeo, candleMat);
-        candleMesh.position.y = 4.4;
-        cakeGroup.add(candleMesh);
-
-        // نور شعله شمع (باعث سایه روشن روی قایق و آب میشه)
-        const flameLight = new THREE.PointLight(0xffaa00, 2, 50);
-        flameLight.position.set(0, 4.8, 0);
-        cakeGroup.add(flameLight);
-
-        // گرافیک خود شعله
-        const flameGeo = new THREE.ConeGeometry(0.15, 0.4, 16);
-        const flameMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
-        const flameMesh = new THREE.Mesh(flameGeo, flameMat);
-        flameMesh.position.y = 4.8;
-        cakeGroup.add(flameMesh);
-
-        cakeGroup.position.set(0, 0, 3);
-        boatGroup.add(cakeGroup); // کیک وصل میشه به قایق تا باهاش تکون بخوره
-
-        // ==========================================
-        // 3. انیمیشن دوربین (لرزش روی آب) و آب
-        // ==========================================
-        const clock = new THREE.Clock();
-        function animateEnvironment() {
-            const t = clock.getElapsedTime();
-            
-            // حرکت موج‌های آب
-            const positions = waterGeometry.attributes.position.array;
-            for(let i = 0; i < positions.length; i+=3) {
-                positions[i+2] = Math.sin(positions[i]/5 + t) * Math.cos(positions[i+1]/5 + t) * 0.5;
-            }
-            waterGeometry.attributes.position.needsUpdate = true;
-
-            // تکون خوردن نرم قایق و دوربین روی آب
-            boatGroup.position.y = Math.sin(t * 1.5) * 0.3;
-            boatGroup.rotation.z = Math.sin(t * 1) * 0.02;
-            boatGroup.rotation.x = Math.cos(t * 1.2) * 0.02;
-            
-            camera.position.y = 5 + Math.sin(t * 1.5) * 0.3;
-            
-            // سوسو زدن نور شمع
-            if(!isBlownOut) {
-                flameLight.intensity = 2 + Math.random() * 0.5;
-                flameMesh.scale.set(1 + Math.random()*0.1, 1 + Math.random()*0.2, 1);
-            }
-        }
-
-        // ==========================================
-        // 4. منطق فوت کردن و ساخت فانوس‌ها
-        // ==========================================
-        const startBtn = document.getElementById('start-btn');
-        const uiLayer = document.getElementById('ui-layer');
-        const instruction = document.getElementById('instruction');
-        const bgMusic = document.getElementById('bg-music');
-        
+        // متغیرهای اصلی
+        let scene, camera, renderer, composer;
+        let boat, cake, candleLight;
+        let lanterns = [];
         let audioCtx, analyser, dataArray;
         let isBlownOut = false;
-        let lanterns = [];
+        let clock = new THREE.Clock();
 
+        const startBtn = document.getElementById('start-btn');
+        const instruction = document.getElementById('instruction');
+        const loadingText = document.getElementById('loading');
+        
+        // موزیک پس‌زمینه (بدون نیاز به پخش فضایی)
+        const bgMusic = new Audio('./music.mp3');
+        bgMusic.loop = true;
+
+        init();
+
+        function init() {
+            // ۱. تنظیمات صحنه و دوربین (زاویه دید اول شخص)
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x010103, 0.03); // مه تاریک برای عمق دریاچه
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 1.5, 1.5); // جایگاه چشم کاربر تو قایق
+
+            // ۲. رندر و افکت درخشش (Bloom)
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.toneMapping = THREE.ReinhardToneMapping;
+            document.body.appendChild(renderer.domElement);
+
+            const renderScene = new RenderPass(scene, camera);
+            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+            bloomPass.threshold = 0;
+            bloomPass.strength = 1.2; // قدرت درخشش
+            bloomPass.radius = 0.5;
+
+            composer = new EffectComposer(renderer);
+            composer.addPass(renderScene);
+            composer.addPass(bloomPass);
+
+            // ۳. نورپردازی داینامیک محیط
+            const ambientLight = new THREE.AmbientLight(0x0a0a1a, 0.5); // نور خیلی ضعیف شب
+            scene.add(ambientLight);
+
+            candleLight = new THREE.PointLight(0xffa500, 2, 10);
+            candleLight.position.set(0, 1.2, -0.5); // حدودی روی کیک
+            scene.add(candleLight);
+
+            // ۴. ساخت آب دریاچه (رفلکتیو و تاریک)
+            const waterGeo = new THREE.PlaneGeometry(200, 200);
+            const waterMat = new THREE.MeshStandardMaterial({ 
+                color: 0x000510, roughness: 0.1, metalness: 0.8 
+            });
+            const water = new THREE.Mesh(waterGeo, waterMat);
+            water.rotation.x = -Math.PI / 2;
+            water.position.y = -0.5;
+            scene.add(water);
+
+            // ۵. ستاره‌های آسمان
+            const starsGeo = new THREE.BufferGeometry();
+            const starsMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.05, transparent: true, opacity: 0.8 });
+            const starsArr = [];
+            for(let i=0; i<1000; i++) {
+                starsArr.push((Math.random() - 0.5) * 100, Math.random() * 50 + 5, (Math.random() - 0.5) * 100);
+            }
+            starsGeo.setAttribute('position', new THREE.Float32BufferAttribute(starsArr, 3));
+            scene.add(new THREE.Points(starsGeo, starsMat));
+
+            // ۶. لود کردن مدل‌های سه‌بعدی
+            const loader = new GLTFLoader();
+            
+            // لود قایق
+            loader.load('./boat.glb', (gltf) => {
+                boat = gltf.scene;
+                // مقیاس و موقعیت رو اینجا می‌تونی تغییر بدی اگه مدل خیلی بزرگ/کوچیک بود
+                boat.scale.set(1, 1, 1); 
+                boat.position.set(0, -0.5, 0);
+                scene.add(boat);
+                checkLoadStatus();
+            }, undefined, (e) => console.error("Boat load error", e));
+
+            // لود کیک
+            loader.load('./cake.glb', (gltf) => {
+                cake = gltf.scene;
+                // مقیاس کیک رو تنظیم کن
+                cake.scale.set(0.5, 0.5, 0.5);
+                cake.position.set(0, 0.5, -1); // جلوتر از دوربین
+                scene.add(cake);
+                checkLoadStatus();
+            }, undefined, (e) => console.error("Cake load error", e));
+
+            let loadedCount = 0;
+            function checkLoadStatus() {
+                loadedCount++;
+                if(loadedCount === 2) {
+                    loadingText.style.display = 'none';
+                }
+            }
+
+            window.addEventListener('resize', onWindowResize);
+            animate();
+        }
+
+        // منطق میکروفون و فوت کردن
         startBtn.addEventListener('click', async () => {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                uiLayer.style.opacity = '0';
-                setTimeout(() => uiLayer.style.display = 'none', 1500);
-                setTimeout(() => instruction.style.opacity = '1', 2000);
+                startBtn.style.display = 'none';
+                instruction.style.display = 'block';
 
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioCtx.createAnalyser();
@@ -204,8 +182,8 @@
                 dataArray = new Uint8Array(analyser.frequencyBinCount);
 
                 checkBlow();
-            } catch(e) {
-                alert("بدون میکروفون که نمیشه آرزو کرد! 🎙️");
+            } catch (err) {
+                alert("بدون میکروفون نمی‌تونی شمع رو فوت کنی! 🎙️");
             }
         });
 
@@ -217,79 +195,81 @@
             for(let i=0; i<dataArray.length; i++) sum += dataArray[i];
             let volume = sum / dataArray.length;
 
-            if (volume < 60) {
-                requestAnimationFrame(checkBlow);
+            if (volume > 50) { // اگه محکم فوت کرد
+                triggerMagic();
             } else {
-                startMagic();
+                // سوسو زدن شمع با صدای محیط
+                candleLight.intensity = 2 + (Math.random() * (volume / 20));
+                requestAnimationFrame(checkBlow);
             }
         }
 
-        function startMagic() {
+        function triggerMagic() {
             isBlownOut = true;
-            instruction.style.opacity = '0';
+            instruction.style.display = 'none';
             
             // خاموش شدن شمع
-            flameLight.intensity = 0;
-            flameMesh.visible = false;
-            
+            candleLight.intensity = 0;
+            if(cake) cake.visible = false; // می‌تونیم کیک رو هم محو کنیم
+
             // پخش موزیک
             bgMusic.play();
 
-            // ساخت فانوس‌ها بعد از ۲ ثانیه تاریکی
-            setTimeout(() => {
-                createLanterns();
-            }, 2000);
-        }
+            // ساخت فانوس‌ها
+            const lanternGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.5, 8);
+            const lanternMat = new THREE.MeshStandardMaterial({ 
+                color: 0xffaa00, emissive: 0xffaa00, emissiveIntensity: 2 
+            });
 
-        function createLanterns() {
-            const lanternGeo = new THREE.CylinderGeometry(0.8, 0.8, 2, 8);
-            const lanternMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 }); // متریال درخشان
-
-            for(let i = 0; i < 150; i++) {
-                const mesh = new THREE.Mesh(lanternGeo, lanternMat);
-                // پخش فانوس‌ها در کل دریاچه
-                mesh.position.x = (Math.random() - 0.5) * 200;
-                mesh.position.y = -10 - Math.random() * 50; // شروع از زیر دید دوربین
-                mesh.position.z = -50 - Math.random() * 150; // جلوتر از قایق
-                
-                // نور اختصاصی برای هر فانوس
-                const light = new THREE.PointLight(0xffaa00, 1, 20);
-                mesh.add(light);
-
-                const speed = Math.random() * 0.05 + 0.02;
-                const wobbleSpeed = Math.random() * 0.02 + 0.01;
-                
-                lanterns.push({ mesh, speed, wobbleSpeed, wobbleOffset: Math.random() * Math.PI * 2 });
-                scene.add(mesh);
+            for(let i=0; i<150; i++) {
+                let l = new THREE.Mesh(lanternGeo, lanternMat);
+                l.position.set(
+                    (Math.random() - 0.5) * 40,
+                    Math.random() * -10, // از زیر آب شروع بشن بیان بالا
+                    (Math.random() - 0.5) * 40 - 10
+                );
+                l.userData = {
+                    speed: Math.random() * 0.02 + 0.01,
+                    wobble: Math.random() * Math.PI * 2
+                };
+                scene.add(l);
+                lanterns.push(l);
             }
         }
 
-        function animateLanterns() {
-            if(lanterns.length > 0) {
-                const t = clock.getElapsedTime();
-                lanterns.forEach(lantern => {
-                    lantern.mesh.position.y += lantern.speed;
-                    lantern.mesh.position.x += Math.sin(t * lantern.wobbleSpeed + lantern.wobbleOffset) * 0.1;
-                });
-            }
-        }
-
-        // ==========================================
-        // 5. حلقه اصلی رندر
-        // ==========================================
-        function animate() {
-            requestAnimationFrame(animate);
-            animateEnvironment();
-            animateLanterns();
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        window.addEventListener('resize', () => {
+        function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // حلقه انیمیشن
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            // لرزش نرم قایق و دوربین (POV)
+            camera.position.y = 1.5 + Math.sin(time * 1.5) * 0.05;
+            camera.rotation.z = Math.cos(time * 1.2) * 0.02;
+            camera.rotation.x = Math.sin(time * 0.8) * 0.01;
+
+            if (!isBlownOut) {
+                // سوسو زدن طبیعی شمع تو سکوت
+                candleLight.position.x = Math.sin(time * 10) * 0.02;
+            } else {
+                // انیمیشن پرواز فانوس‌ها
+                lanterns.forEach(l => {
+                    l.position.y += l.userData.speed;
+                    l.userData.wobble += 0.02;
+                    l.position.x += Math.sin(l.userData.wobble) * 0.01;
+                    l.rotation.y += 0.01;
+                    l.rotation.z = Math.sin(l.userData.wobble) * 0.1;
+                });
+            }
+
+            composer.render();
+        }
     </script>
 </body>
 </html>
